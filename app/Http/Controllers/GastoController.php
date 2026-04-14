@@ -125,13 +125,16 @@ class GastoController extends Controller
 
                 $publicUrl = null;
                 try {
-                    $sharedResponse = $dropboxClient->createSharedLinkWithSettings($path, ["requested_visibility" => "public"]);
+                    // Intenta crear el link sin settings adicionales primero
+                    $sharedResponse = $dropboxClient->createSharedLinkWithSettings($path);
                     $publicUrl = $sharedResponse['url'];
                 } catch (\Exception $e) {
+                    // Si falla, intentamos listar (aquí es donde suele estar el link si ya existe)
                     $links = $dropboxClient->listSharedLinks($path);
                     $publicUrl = !empty($links) ? $links[0]['url'] : null;
                 }
 
+                // Transformar a link de descarga si existe
                 if ($publicUrl) {
                     $publicUrl = str_replace('dl=0', 'dl=1', $publicUrl);
                 }
@@ -152,8 +155,18 @@ class GastoController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error en Dropbox:', ['msg' => $e->getMessage()]);
-            return response()->json(['message' => 'Fallo en la comunicación con el almacenamiento en la nube.'], 500);
+    
+            // Esto nos dirá si es un error de la librería o una respuesta de la API
+            $detailedError = method_exists($e, 'getResponse') 
+                ? $e->getResponse()->getBody()->getContents() 
+                : $e->getMessage();
+
+            Log::error('Error detallado de Dropbox:', ['info' => $detailedError]);
+            
+            return response()->json([
+                'message' => 'Fallo en la comunicación.',
+                'debug' => $detailedError // Solo para pruebas, quítalo en producción
+            ], 500);
         }
     }
 
