@@ -13,6 +13,7 @@ class Cliente extends Model
     protected $table = 'clientes'; 
 
     protected $fillable = [
+        'referencia_id',
         'user_id',
         'tipo', 
         'nivel_educativo', 

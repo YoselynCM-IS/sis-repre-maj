@@ -128,6 +128,7 @@ class VisitaController extends Controller
                 $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
 
                 $cliente = Cliente::create([
+                    'referencia_id'   => 0,
                     'user_id'         => $ownerId,
                     'tipo'            => ($request->input('visita.resultado_visita') === 'compra') ? 'CLIENTE' : 'PROSPECTO',
                     'name'            => $name,
@@ -142,6 +143,25 @@ class VisitaController extends Controller
                     'longitud'        => $request->input('plantel.longitud'),
                     'status'          => 'activo'
                 ]);
+
+                // GUARDAR CLIENTE EN LA OTRA BASE DE DATOS
+                $id = \DB::connection('mysql_inventario')->table('clientes')
+                    ->insertGetId ([
+                        'user_id'         => 0,
+                        'tipo'            => ($request->input('visita.resultado_visita') === 'compra') ? 'CLIENTE' : 'PROSPECTO',
+                        'name'            => $name,
+                        'rfc'             => $rfc,
+                        'contacto'        => strtoupper($request->input('plantel.director')),
+                        'telefono'        => $phone,
+                        'email'           => $email,
+                        'direccion'       => strtoupper($request->input('plantel.direccion')), 
+                        'estado_id'       => $request->input('plantel.estado_id'),
+                        'created_at'      => Carbon::now(),
+                        'updated_at'      => Carbon::now()
+                    ]);
+                
+                $cliente->update(['referencia_id' => $id]);
+                // FIN GUARDAR CLIENTE EN LA OTRA BASE DE DATOS
 
                 $visita = Visita::create([
                     'user_id'                 => $ownerId,
