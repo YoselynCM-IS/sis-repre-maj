@@ -146,7 +146,7 @@ class VisitaController extends Controller
 
                 // GUARDAR CLIENTE EN LA OTRA BASE DE DATOS
                 $id = \DB::connection('mysql_inventario')->table('clientes')
-                    ->insertGetId ([
+                    ->insertGetId([
                         'user_id'         => 0,
                         'tipo'            => ($request->input('visita.resultado_visita') === 'compra') ? 'CLIENTE' : 'PROSPECTO',
                         'name'            => $name,
@@ -238,8 +238,12 @@ class VisitaController extends Controller
 
                 if ($validated['resultado_visita'] === 'compra') {
                     $cliente->update(['tipo' => 'CLIENTE']);
+                    \DB::connection('mysql_inventario')->table('clientes')
+                        ->where('id', $cliente->referencia_id)->update(['tipo' => 'CLIENTE']);
                 } elseif ($validated['resultado_visita'] === 'rechazo') {
                     $cliente->update(['status' => 'inactivo']);
+                    \DB::connection('mysql_inventario')->table('clientes')
+                        ->where('id', $cliente->referencia_id)->update(['status' => 'inactivo']);
                 }
 
                 return response()->json(['message' => 'Seguimiento registrado correctamente.'], 201);
