@@ -342,15 +342,35 @@ class VisitaController extends Controller
                     
                     // Sincronización con el Cliente Maestro
                     if ($visita->cliente_id) {
-                        Cliente::where('id', $visita->cliente_id)->update([
+                        $cliente = Cliente::where('id', $visita->cliente_id)->first();
+                        $cliente->update([
+                            'tipo' => ($request->input('resultado_visita') === 'compra') ? 'CLIENTE' : 'PROSPECTO',
                             'name' => $visita->nombre_plantel,
                             'rfc' => $visita->rfc_plantel,
-                            'direccion' => $visita->direccion_plantel,
                             'contacto' => $visita->director_plantel,
+                            'telefono' => $visita->telefono_plantel,
                             'email' => $visita->email_plantel,
-                            'telefono' => $visita->telefono_plantel
+                            'direccion' => $visita->direccion_plantel,
+                            'estado_id' => $request->input('plantel.estado_id'),
+                            'status' => ($request->input('resultado_visita') === 'rechazo') ? 'inactivo' : 'activo'
                         ]);
                     }
+
+                    // // MODIFICAR CLIENTE EN ME
+                    \DB::connection('mysql_inventario')->table('clientes')
+                        ->where('id', $cliente->referencia_id)->update([
+                            'tipo'            => ($request->input('resultado_visita') === 'compra') ? 'CLIENTE' : 'PROSPECTO',
+                            'name'            => $visita->nombre_plantel,
+                            'rfc'             => $visita->rfc_plantel,
+                            'contacto'        => $visita->director_plantel,
+                            'telefono'        => $visita->telefono_plantel,
+                            'email'           => $visita->email_plantel,
+                            'direccion'       => $visita->direccion_plantel, 
+                            'estado_id'       => $request->input('plantel.estado_id'),
+                            'status'          => ($request->input('resultado_visita') === 'rechazo') ? 'inactivo' : 'activo',
+                            'updated_at'      => Carbon::now()
+                        ]);
+                    // // FIN MODIFICAR CLIENTE ME
                 }
 
                 // 3. Datos de la Intervención

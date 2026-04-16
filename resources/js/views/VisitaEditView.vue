@@ -656,7 +656,6 @@ const handleSubmit = async () => {
                 entregado: selectedDeliveredBooks.value
             }
         };
-
         await axios.put(`/visitas/${id}`, payload);
         showSuccess.value = true;
     } catch (e) {
