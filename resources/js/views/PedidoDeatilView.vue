@@ -452,7 +452,7 @@ const formatFullAddress = (p) => {
 const getDeliveryOption = (option) => {
     switch (option) {
         case 'recoleccion': return 'RECOLECCIÓN EN ALMACÉN';
-        case 'paqueteria': return 'PAQUETERÍA SUGERIDA';
+        case 'paqueteria': return 'PAQUETERÍA';
         case 'entrega': return 'ENTREGA DIRECTA';
         default: return 'ENTREGA DIRECTA';
     }

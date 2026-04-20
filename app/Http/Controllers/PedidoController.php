@@ -260,19 +260,65 @@ class PedidoController extends Controller
                     'estado'                  => 'proceso',
                     'actualizado_por'         => strtoupper($user->name),
                 ]);
-                
-                $pedido->update(['numero_referencia' => 'PED-' . Carbon::now()->format('ymd') . '-' . str_pad($pedido->id, 4, '0', STR_PAD_LEFT)]);
+                $numero_referencia = 'PED-' . Carbon::now()->format('ymd') . '-' . str_pad($pedido->id, 4, '0', STR_PAD_LEFT);
+                $pedido->update(['numero_referencia' => $numero_referencia]);
 
+                //  INICIA PARA GUARDAR PEDIDO EN ME
                 // Escritura Inventario
                 try {
                     $dbInventario = DB::connection('mysql_inventario');
+                    // 1. Determinamos cuál es la fuente de datos
+                    if (is_null($receptorId)) {
+                        // Si no hay receptorId, usamos los datos del cliente
+                        $fuente = [
+                            'contacto' => $cliente->contacto,
+                            'rfc'      => $cliente->rfc,
+                            'regimen'  => $cliente->receiver_regimen_fiscal,
+                            'correo'   => $cliente->email,
+                            'telefono' => $cliente->telefono,
+                            'direccion'=> $cliente->direccion,
+                        ];
+                    } else {
+                        // Si hay receptorId, usamos los datos del receptor (debe estar cargado en $receptor)
+                        $fuente = [
+                            'contacto' => $receptor->nombre,
+                            'rfc'      => $receptor->rfc,
+                            'regimen'  => $receptor->receiver_regimen_fiscal,
+                            'correo'   => $receptor->correo,
+                            'telefono' => $receptor->telefono,
+                            'direccion'=> $receptor->direccion,
+                        ];
+                    }
+
+                    // 2. Construimos el bloque HTML
+                    $informacion1 = "
+                        <div class='info-logistica' style='font-family: Arial, sans-serif;'>
+                            <p><strong>PRIORIDAD DE ATENCIÓN:</strong> " . mb_strtoupper($validatedData['prioridad'], 'UTF-8') . "</p>
+                            <p><strong>MÉTODO DE ENVÍO:</strong> " . ($validatedData['logistics']['deliveryOption'] === 'entrega' ? 'CLIENTE RECOGE' : mb_strtoupper($validatedData['logistics']['deliveryOption'], 'UTF-8')) . "</p>
+                            <p><strong>PAQUETERÍA SUGERIDA:</strong> " . mb_strtoupper($request->input('logistics.paqueteria_nombre') ?? 'N/A', 'UTF-8') . "</p>
+                            <p><strong>COMENTARIOS:</strong> " . mb_strtoupper($request->input('logistics.comentarios_logistica') ?? 'SIN COMENTARIOS', 'UTF-8') . "</p>
+                            
+                            <hr>
+                            <h4 style='margin-bottom: 5px;'>DATOS DE ENVÍO</h4>
+                            <ul style='list-style: none; padding-left: 0;'>
+                                <li><strong>CONTACTO:</strong> " . mb_strtoupper($fuente['contacto'], 'UTF-8') . "</li>
+                                <li><strong>RFC:</strong> " . mb_strtoupper($fuente['rfc'], 'UTF-8') . "</li>
+                                <li><strong>RÉGIMEN FISCAL:</strong> " . mb_strtoupper($fuente['regimen'], 'UTF-8') . "</li>
+                                <li><strong>CORREO ELECTRÓNICO:</strong> " . mb_strtoupper($fuente['correo'], 'UTF-8') . "</li>
+                                <li><strong>TELÉFONO:</strong> " . $fuente['telefono'] . "</li>
+                                <li><strong>DIRECCIÓN DE ENVÍO:</strong> " . mb_strtoupper($direccionFormateada, 'UTF-8') . "</li>
+                            </ul>
+                        </div>";
+
                     $idInventario = $dbInventario->table('pedidos')->insertGetId([
-                        'user_id'         => $ownerId,
-                        'cliente_id'      => $validatedData['clientId'],
+                        'numero_referencia' => $numero_referencia,
+                        'user_id'         => 0,
+                        'cliente_id'      => $cliente->referencia_id,
                         'total_quantity'  => $totalQuantity,
                         'total'           => $totalAmount,
                         'total_solicitar' => 0,
                         'estado'          => 'proceso',
+                        'informacion'     => $informacion1,
                         'comentarios'     => strtoupper($validatedData['comments'] ?? 'SINERGIA WEB'),
                         'actualizado_por' => strtoupper($user->name),
                         'created_at'      => now(),
@@ -282,6 +328,7 @@ class PedidoController extends Controller
                     Log::error("Error insert cabecera inventario: " . $eEx->getMessage());
                     throw new \Exception("Fallo en sincronización de inventario.");
                 }
+                //  FIN PARA GUARDAR PEDIDO EN ME
 
                 // Registro de ítems
                 foreach ($validatedData['items'] as $item) {
@@ -289,18 +336,28 @@ class PedidoController extends Controller
                         ? (str_contains(strtolower($item['sub_type']), 'demo') ? 'demo' : 'profesor') 
                         : 'alumno';
 
+                    //  INICIA PARA GUARDAR DETALLES DE PEDIDO EN ME
+                    $libro = Libro::find($item['bookId']);
+                    $informacion2 = "
+                        <div class='info-logistica' style='font-family: Arial, sans-serif;'>
+                            <p><strong>TIPO:</strong> " . $item['tipo_material'] . "</p>
+                            <p><strong>FORMATO:</strong> " . $item['sub_type'] . "</p>
+                        </div>";
+
                     $dbInventario->table('peticiones')->insert([
                         'pedido_id'  => $idInventario,
                         'pack_id'    => null, 
-                        'libro_id'   => $item['bookId'],
-                        'tipo'       => $tipoPeticion,
+                        'libro_id'   => $libro->referencia_id,
+                        'tipo'       => null,
+                        'informacion' => $informacion2,
                         'quantity'   => $item['quantity'],
                         'price'      => $item['price'] ?? 0,
                         'total'      => $item['quantity'] * ($item['price'] ?? 0),
                         'created_at' => now(),
                         'updated_at' => now()
                     ]);
-
+                    //  FIN PARA GUARDAR DETALLES DE PEDIDO EN ME
+                    
                     PedidoDetalle::create([
                         'pedido_id'       => $pedido->id,
                         'libro_id'        => $item['bookId'],
