@@ -212,6 +212,7 @@ class PedidoController extends Controller
                 $regimenFull = $validatedData['receiver']['regimen_fiscal'] ?? null;
                 $receptorId = $validatedData['receptor_id'] ?? null;
                 $direccionFormateada = '';
+                $receptor = null;
 
                 if ($validatedData['receiverType'] === 'nuevo') {
                     $r = $validatedData['receiver'];
@@ -267,48 +268,7 @@ class PedidoController extends Controller
                 // Escritura Inventario
                 try {
                     $dbInventario = DB::connection('mysql_inventario');
-                    // 1. Determinamos cuál es la fuente de datos
-                    if (is_null($receptorId)) {
-                        // Si no hay receptorId, usamos los datos del cliente
-                        $fuente = [
-                            'contacto' => $cliente->contacto,
-                            'rfc'      => $cliente->rfc,
-                            'regimen'  => $cliente->receiver_regimen_fiscal,
-                            'correo'   => $cliente->email,
-                            'telefono' => $cliente->telefono,
-                            'direccion'=> $cliente->direccion,
-                        ];
-                    } else {
-                        // Si hay receptorId, usamos los datos del receptor (debe estar cargado en $receptor)
-                        $fuente = [
-                            'contacto' => $receptor->nombre,
-                            'rfc'      => $receptor->rfc,
-                            'regimen'  => $receptor->receiver_regimen_fiscal,
-                            'correo'   => $receptor->correo,
-                            'telefono' => $receptor->telefono,
-                            'direccion'=> $receptor->direccion,
-                        ];
-                    }
-
-                    // 2. Construimos el bloque HTML
-                    $informacion1 = "
-                        <div class='info-logistica' style='font-family: Arial, sans-serif;'>
-                            <p><strong>PRIORIDAD DE ATENCIÓN:</strong> " . mb_strtoupper($validatedData['prioridad'], 'UTF-8') . "</p>
-                            <p><strong>MÉTODO DE ENVÍO:</strong> " . ($validatedData['logistics']['deliveryOption'] === 'entrega' ? 'CLIENTE RECOGE' : mb_strtoupper($validatedData['logistics']['deliveryOption'], 'UTF-8')) . "</p>
-                            <p><strong>PAQUETERÍA SUGERIDA:</strong> " . mb_strtoupper($request->input('logistics.paqueteria_nombre') ?? 'N/A', 'UTF-8') . "</p>
-                            <p><strong>COMENTARIOS:</strong> " . mb_strtoupper($request->input('logistics.comentarios_logistica') ?? 'SIN COMENTARIOS', 'UTF-8') . "</p>
-                            
-                            <hr>
-                            <h4 style='margin-bottom: 5px;'>DATOS DE ENVÍO</h4>
-                            <ul style='list-style: none; padding-left: 0;'>
-                                <li><strong>CONTACTO:</strong> " . mb_strtoupper($fuente['contacto'], 'UTF-8') . "</li>
-                                <li><strong>RFC:</strong> " . mb_strtoupper($fuente['rfc'], 'UTF-8') . "</li>
-                                <li><strong>RÉGIMEN FISCAL:</strong> " . mb_strtoupper($fuente['regimen'], 'UTF-8') . "</li>
-                                <li><strong>CORREO ELECTRÓNICO:</strong> " . mb_strtoupper($fuente['correo'], 'UTF-8') . "</li>
-                                <li><strong>TELÉFONO:</strong> " . $fuente['telefono'] . "</li>
-                                <li><strong>DIRECCIÓN DE ENVÍO:</strong> " . mb_strtoupper($direccionFormateada, 'UTF-8') . "</li>
-                            </ul>
-                        </div>";
+                    $informacion1 = $this->text_to_html($receptorId, $cliente, $receptor, $validatedData, $request);
 
                     $idInventario = $dbInventario->table('pedidos')->insertGetId([
                         'numero_referencia' => $numero_referencia,
@@ -377,6 +337,50 @@ class PedidoController extends Controller
         }
     }
 
+    // COLOCAR LA INFORMACION EN HTML
+    public function text_to_html($receptorId, $cliente, $receptor, $validatedData, $request){
+        // 1. Determinamos cuál es la fuente de datos
+        if (is_null($receptorId)) {
+            // Si no hay receptorId, usamos los datos del cliente
+            $fuente = [
+                'contacto' => $cliente->contacto,
+                'rfc'      => $cliente->rfc,
+                'regimen'  => $cliente->receiver_regimen_fiscal,
+                'correo'   => $cliente->email,
+                'telefono' => $cliente->telefono,
+                'direccion'=> $cliente->direccion,
+            ];
+        } else {
+            // Si hay receptorId, usamos los datos del receptor (debe estar cargado en $receptor)
+            $fuente = [
+                'contacto' => $receptor->nombre,
+                'rfc'      => $receptor->rfc,
+                'regimen'  => $receptor->receiver_regimen_fiscal,
+                'correo'   => $receptor->correo,
+                'telefono' => $receptor->telefono,
+                'direccion'=> $receptor->direccion,
+            ];
+        }
+
+        // 2. Construimos el bloque HTML
+        return "<div class='info-logistica' style='font-family: Arial, sans-serif;'>
+                <p><strong>PRIORIDAD DE ATENCIÓN:</strong> " . mb_strtoupper($validatedData['prioridad'], 'UTF-8') . "</p>
+                <p><strong>MÉTODO DE ENVÍO:</strong> " . ($validatedData['logistics']['deliveryOption'] === 'entrega' ? 'CLIENTE RECOGE' : mb_strtoupper($validatedData['logistics']['deliveryOption'], 'UTF-8')) . "</p>
+                <p><strong>PAQUETERÍA SUGERIDA:</strong> " . mb_strtoupper($request->input('logistics.paqueteria_nombre') ?? 'N/A', 'UTF-8') . "</p>
+                <p><strong>COMENTARIOS:</strong> " . mb_strtoupper($request->input('logistics.comentarios_logistica') ?? 'SIN COMENTARIOS', 'UTF-8') . "</p>
+                <hr>
+                <h4 style='margin-bottom: 5px;'>DATOS DE ENVÍO</h4>
+                <ul style='list-style: none; padding-left: 0;'>
+                    <li><strong>CONTACTO:</strong> " . mb_strtoupper($fuente['contacto'], 'UTF-8') . "</li>
+                    <li><strong>RFC:</strong> " . mb_strtoupper($fuente['rfc'], 'UTF-8') . "</li>
+                    <li><strong>RÉGIMEN FISCAL:</strong> " . mb_strtoupper($fuente['regimen'], 'UTF-8') . "</li>
+                    <li><strong>CORREO ELECTRÓNICO:</strong> " . mb_strtoupper($fuente['correo'], 'UTF-8') . "</li>
+                    <li><strong>TELÉFONO:</strong> " . $fuente['telefono'] . "</li>
+                    <li><strong>DIRECCIÓN DE ENVÍO:</strong> " . mb_strtoupper($fuente['direccion'], 'UTF-8') . "</li>
+                </ul>
+            </div>";
+    }
+
     /**
      * Actualización de pedido con Validación de Integridad Completa.
      */
@@ -396,7 +400,8 @@ class PedidoController extends Controller
             'items' => 'required|array|min:1',
             'motivo_cambio' => 'required|string|min:10',
             'comments' => 'nullable|string', 
-            'logistics.comentarios_logistica' => 'nullable|string' 
+            'logistics.comentarios_logistica' => 'nullable|string',
+            'logistics.deliveryOption' => 'required|in:paqueteria,recoleccion,entrega',
         ]);
 
         try {
@@ -419,6 +424,7 @@ class PedidoController extends Controller
                 $receptorId = $request->receptor_id;
                 $direccionFormateada = $pedido->delivery_address;
                 $regimenFull = $pedido->receiver_regimen_fiscal;
+                $receptor = null;
 
                 if ($validatedData['receiverType'] === 'nuevo') {
                     $r = $request->input('receiver');
@@ -474,8 +480,26 @@ class PedidoController extends Controller
                     'actualizado_por'         => strtoupper($user->name),
                 ]);
 
+                // INICIAR ACTUALIZAR PEDIDO EN ME
+                $dbInventario = DB::connection('mysql_inventario');
+                $informacion1 = $this->text_to_html($receptorId, $cliente, $receptor, $validatedData, $request);
+
+                $dbInventario->table('pedidos')->where('numero_referencia', $pedido->numero_referencia)->update([
+                        'cliente_id'      => $cliente->referencia_id,
+                        'total_quantity'  => $totalQuantity,
+                        'total'           => $totalAmount,
+                        'informacion'     => $informacion1,
+                        'comentarios'     => strtoupper($request->input('comments', $pedido->comments)),
+                        'actualizado_por' => strtoupper($user->name),
+                        'updated_at'      => now()
+                    ]);
+                // FIN ACTUALIZAR PEDIDO EN ME
+
                 // Actualizar detalles de materiales
                 $pedido->detalles()->delete();
+                // OBTENER ID DE PEDIDO EN ME
+                $pedido_me = $dbInventario->table('pedidos')->where('numero_referencia', $pedido->numero_referencia)->first();
+                $dbInventario->table('peticiones')->where('pedido_id', $pedido_me->id)->update(['deleted_at' => now()]);
                 foreach ($request->items as $item) {
                     PedidoDetalle::create([
                         'pedido_id'       => $pedido->id,
@@ -486,6 +510,28 @@ class PedidoController extends Controller
                         'precio_unitario' => $item['price'] ?? 0,
                         'costo_total'     => $item['quantity'] * ($item['price'] ?? 0)
                     ]);
+
+                    // INICIA PARA GUARDAR DETALLES DE PEDIDO EN ME
+                    $libro = Libro::find($item['bookId']);
+                    $informacion2 = "
+                        <div class='info-logistica' style='font-family: Arial, sans-serif;'>
+                            <p><strong>TIPO:</strong> " . $item['tipo_material'] . "</p>
+                            <p><strong>FORMATO:</strong> " . $item['sub_type'] . "</p>
+                        </div>";
+
+                    $dbInventario->table('peticiones')->insert([
+                        'pedido_id'  => $pedido_me->id,
+                        'pack_id'    => null, 
+                        'libro_id'   => $libro->referencia_id,
+                        'tipo'       => null,
+                        'informacion' => $informacion2,
+                        'quantity'   => $item['quantity'],
+                        'price'      => $item['price'] ?? 0,
+                        'total'      => $item['quantity'] * ($item['price'] ?? 0),
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]);
+                    //  FIN PARA GUARDAR DETALLES DE PEDIDO EN ME
                 }
 
                 return response()->json(['message' => 'Expediente actualizado correctamente.'], 200);
