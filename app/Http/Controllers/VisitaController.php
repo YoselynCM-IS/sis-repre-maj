@@ -38,7 +38,7 @@ class VisitaController extends Controller
             }
 
             // Definimos las relaciones base
-            $relations = ['estado', 'cliente'];
+            $relations = ['estado', 'cliente', 'user'];
 
             // Si el frontend solicita logs (para la tabla de auditoría en el detalle)
             if ($request->has('include_logs')) {

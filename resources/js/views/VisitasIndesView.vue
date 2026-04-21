@@ -114,6 +114,7 @@
                 
                 <td class="table-cell table-cell-bold text-gray-700 block md:table-cell" data-label="FECHA">
                     {{ formatDate(visita.fecha) }}
+                    <br><label v-if="visita.user.role == 'representante'" style="color:gray; font-size:9px">{{ visita.user.full_name }}</label>
                 </td>
                 
                 <td class="table-cell block md:table-cell" data-label="PLANTEL">
