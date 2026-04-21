@@ -26,12 +26,24 @@ class GastoController extends Controller
     public function index(Request $request)
     {
         try {
-            $user = $request->user();
+            // Obtenemos el usuario autenticado mediante el helper global
+            $user = auth()->user();
+
             if (!$user) return response()->json(['message' => 'No autenticado'], 401);
             
-            $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
-            
-            $query = Gasto::where('user_id', $ownerId)->with('comprobantes');
+
+            // Iniciamos el query con la relación de comprobantes
+            $query = Gasto::with('comprobantes');
+
+            /**
+             * Lógica de Roles:
+             * Si el rol NO es 'representante', filtramos por su ID (promotor, etc.)
+             * Si el rol ES 'representante', no entra al IF y trae todos los registros.
+             */
+            if ($user->role !== 'representante') {
+                $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
+                $query->where('user_id', $ownerId);
+            }
 
             if ($request->filled('fecha_desde') && $request->filled('fecha_hasta')) {
                 $query->whereBetween('fecha', [$request->fecha_desde, $request->fecha_hasta]);
