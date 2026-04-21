@@ -33,9 +33,12 @@ class SearchController extends Controller
                     'id', 'name', 'tipo', 'direccion', 'contacto', 'telefono', 'email',
                     'rfc', 'regimen_fiscal', 'cp', 'municipio', 'colonia', 'calle_num', 'estado_id'
                 )
-                ->where('user_id', $ownerId) // <--- REGLA DE ORO: Filtro de propiedad
                 ->where('name', 'like', "%{$query}%")
                 ->where('status', 'activo');
+
+            if($user->role == 'promotor'){
+                $builder->where('user_id', $ownerId); // <--- REGLA DE ORO: Filtro de propiedad
+            }
 
             if (!$includeProspectos) {
                 $builder->whereIn('tipo', ['CLIENTE', 'DISTRIBUIDOR']);
