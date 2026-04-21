@@ -123,6 +123,14 @@ class Visita extends Model
         return $this->belongsTo(Estado::class, 'estado_id');
     }
 
+    /**
+     * Relación con el usuario (quien creo el pedido).
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function logs()
 {
     return $this->hasMany(VisitaLog::class, 'visita_id');

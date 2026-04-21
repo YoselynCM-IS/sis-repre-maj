@@ -20,14 +20,22 @@ class VisitaController extends Controller
     public function index(Request $request)
     {
         try {
-            $user = $request->user();
+            $user = auth()->user();
+
             if (!$user) {
                 return response()->json(['message' => 'No autenticado.'], 401);
             }
-            
-            $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
 
-            $query = Visita::where('user_id', $ownerId);
+            // 1. Definimos el Query base
+            $query = Visita::query();
+
+            // 2. Lógica de visibilidad por Rol
+            // Si NO es representante (asumiendo que los demás ven todo), no filtramos por user_id.
+            // Si ES representante, aplicamos el filtro de propiedad.
+            if ($user->role === 'representante') {
+                $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
+                $query->where('user_id', $ownerId);
+            }
 
             // Definimos las relaciones base
             $relations = ['estado', 'cliente'];
