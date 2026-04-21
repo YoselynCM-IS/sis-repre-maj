@@ -356,7 +356,7 @@
 
         <!-- ─────────── SECCIÓN: DELEGADOS ─────────── -->
         <Transition name="section-slide" mode="out-in">
-          <section v-if="activeSection === 'delegates'" key="delegates" class="section-card">
+          <section v-if="activeSection === 'delegates' && user.role === 'representante'" key="delegates" class="section-card">
             <div class="card-strip card-strip--purple"></div>
             <div class="card-body">
 
@@ -504,12 +504,21 @@ const activeSection = ref('personal')
 const showAddDelegate = ref(false)
 const showPwd = ref([false, false, false])
 
-const navItems = [
-  { key: 'personal',  label: 'Datos Personales',       icon: 'fas fa-user-edit' },
-  { key: 'tools',     label: 'Herramientas de Trabajo', icon: 'fas fa-tools' },
-  { key: 'security',  label: 'Seguridad',               icon: 'fas fa-shield-alt' },
-  { key: 'delegates', label: 'Gestionar Delegados',     icon: 'fas fa-users-cog' },
-]
+// Cambiamos el array fijo por uno computado que filtra según el rol
+const navItems = computed(() => {
+  const items = [
+    { key: 'personal', label: 'Datos Personales', icon: 'fas fa-user-edit' },
+    { key: 'tools', label: 'Herramientas de Trabajo', icon: 'fas fa-tools' },
+    { key: 'security', label: 'Seguridad', icon: 'fas fa-shield-alt' },
+  ];
+
+  // Solo agregamos la opción si el usuario es representante
+  if (user.value.role === 'representante') {
+    items.push({ key: 'delegates', label: 'Gestionar Delegados', icon: 'fas fa-users-cog' });
+  }
+
+  return items;
+});
 
 const user = ref({
   name: '', full_name: '', rfc: '', email: '', phone: '',
@@ -531,7 +540,7 @@ const initials = computed(() => {
   return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase() || 'U'
 })
 
-const currentSection = computed(() => navItems.find(n => n.key === activeSection.value) || navItems[0])
+const currentSection = computed(() => navItems.value.find(n => n.key === activeSection.value) || navItems.value[0])
 
 const today = computed(() =>
   new Date().toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
@@ -561,7 +570,7 @@ const fetchInitialData = async () => {
     estados.value = estadosRes.data
     const d = profileRes.data.user || profileRes.data
     user.value = {
-      name: d.name || '', full_name: d.full_name || '', email: d.email || '',
+      name: d.name || '', role: d.role || '', full_name: d.full_name || '', email: d.email || '',
       rfc: d.rfc || '', phone: d.phone || '', personal_phone: d.personal_phone || '',
       position: d.position || '', employee_id: d.employee_id || '', state_id: d.state_id || '',
       city: d.city || '', address: d.address || '', car_plates: d.car_plates || '',
