@@ -127,6 +127,14 @@ class Pedido extends Model
     }
 
     /**
+     * Relación con el usuario (quien creo el pedido).
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
      * Relación con el Historial de Auditoría (Logs).
      * Esta relación es la que permite ver los motivos de cambio y comentarios de edición.
      */

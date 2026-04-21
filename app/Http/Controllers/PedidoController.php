@@ -93,13 +93,18 @@ class PedidoController extends Controller
     public function index(Request $request)
     {
         try {
-            $user = $request->user();
-            $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
-
-            $pedidos = Pedido::where('user_id', $ownerId)
+            // $user = $request->user();
+            // $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
+            if(auth()->user()->role == 'representante'){
+                $pedidos = Pedido::with(['cliente', 'detalles.libro', 'user']) 
+                            ->orderBy('created_at', 'desc')
+                            ->paginate(15);
+            } else {
+                $pedidos = Pedido::where('user_id', auth()->user()->id)
                             ->with(['cliente', 'detalles.libro']) 
                             ->orderBy('created_at', 'desc')
                             ->paginate(15);
+            }
             
             return response()->json($pedidos);
         } catch (\Exception $e) {

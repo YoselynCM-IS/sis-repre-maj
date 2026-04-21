@@ -98,7 +98,8 @@
                 class="hover:bg-gray-50 transition-colors block md:table-row relative p-5 md:p-0 border-b md:border-none">
                 
                 <td class="table-cell font-bold bld text-red-800 block md:table-cell" data-label="N">
-                    {{ pedido.display_id || pedido.numero_referencia || ('PED-' + pedido.id) }}
+                    {{ pedido.display_id || pedido.numero_referencia || ('PED-' + pedido.id) }} <br>
+                    <label v-if="pedido.user" style="color:gray; font-size:9px">{{ pedido.user.full_name }}</label>
                 </td>
 
                 <td class="table-cell block md:table-cell" data-label="NOMBRE DELCLIENTE">
