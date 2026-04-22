@@ -11,6 +11,7 @@ use App\Models\PedidoDetalle;
 use App\Models\PedidoReceptor;
 use App\Models\Libro;
 use App\Models\PedidoLog;
+use App\Models\CodigoPostal;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
@@ -24,17 +25,35 @@ class PedidoController extends Controller
     public function proxyDipomex(Request $request)
     {
         $cp = $request->query('cp');
-        $apiKey = env('DIPOMEX_APIKEY');
 
         if (!$cp || strlen($cp) !== 5) {
             return response()->json(['error' => true, 'message' => 'Código Postal inválido'], 400);
         }
 
         try {
-            $response = Http::withHeaders(['APIKEY' => $apiKey])
-                ->get("https://api.tau.com.mx/dipomex/v1/codigo_postal?cp={$cp}");
+            // Buscamos todos los asentamientos con ese CP
+            $resultados = CodigoPostal::where('d_codigo', $cp)->get();
 
-            return response()->json($response->json(), $response->status());
+            if ($resultados->isEmpty()) {
+                return response()->json(['error' => true, 'message' => 'No encontrado'], 404);
+            }
+
+            // Tomamos el primer registro para obtener Estado y Municipio (son iguales para un mismo CP)
+            $primerRegistro = $resultados->first();
+
+            // Extraemos todas las colonias del set de resultados
+            // Usamos 'd_asenta' que es el nombre de tu columna para la colonia
+            $colonias = $resultados->pluck('d_asenta')->toArray();
+
+            // Construimos la respuesta EXACTA que espera tu Vue.js
+            return response()->json([
+                'codigo_postal' => [
+                    'estado'    => $primerRegistro->d_estado,
+                    'municipio' => $primerRegistro->D_mnpio, // Nota: Usé D_mnpio como pusiste en tu tabla
+                    'colonias'  => $colonias
+                ]
+            ], 200);
+
         } catch (\Exception $e) {
             Log::error("Error Dipomex: " . $e->getMessage());
             return response()->json(['error' => true, 'message' => 'Error al conectar con el servicio postal'], 500);
