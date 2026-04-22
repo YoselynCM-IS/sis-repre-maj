@@ -164,6 +164,8 @@ class VisitaController extends Controller
                         'email'           => $email,
                         'direccion'       => strtoupper($request->input('plantel.direccion')), 
                         'estado_id'       => $request->input('plantel.estado_id'),
+                        'latitud'         => $request->input('plantel.latitud'),
+                        'longitud'        => $request->input('plantel.longitud'),
                         'created_at'      => Carbon::now(),
                         'updated_at'      => Carbon::now()
                     ]);
