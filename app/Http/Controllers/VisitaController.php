@@ -89,7 +89,7 @@ class VisitaController extends Controller
     /**
      * Registro de Primera Visita (Prospectación Inicial).
      */
-      public function storePrimeraVisita(Request $request)
+    public function storePrimeraVisita(Request $request)
     {
         $request->validate([
             'plantel.name'      => 'required|string|max:100',
@@ -103,6 +103,8 @@ class VisitaController extends Controller
             'plantel.email'     => 'required|email',
             'plantel.director'  => 'required|string',
             'plantel.foto_plantel' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
+            // NUEVA VALIDACIÓN: REQUERIDO, TEXTO Y MÍNIMO 20 CARACTERES
+            'plantel.beneficios_adicionales' => 'required|string|min:20',
             'visita.fecha'                => 'required|date',
             'visita.persona_entrevistada' => 'required|string',
             'visita.cargo'                => 'required|string',
@@ -161,6 +163,8 @@ class VisitaController extends Controller
                     'extension'       => $extension,
                     'email'           => $email,
                     'direccion'       => strtoupper($request->input('plantel.direccion')),
+                    // SE AGREGA ALMACENAMIENTO DE BENEFICIOS ADICIONALES EN MAYÚSCULAS
+                    'beneficios_adicionales' => strtoupper($request->input('plantel.beneficios_adicionales')),
                     'estado_id'       => $request->input('plantel.estado_id'),
                     'latitud'         => $request->input('plantel.latitud'),
                     'longitud'        => $request->input('plantel.longitud'),

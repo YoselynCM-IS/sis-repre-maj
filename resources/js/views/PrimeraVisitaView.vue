@@ -458,6 +458,19 @@
                                 </select>
                             </div>
 
+                            <div class="form-group mb-6">
+                                <label class="label-style">BENEFICIOS ADICIONALES *</label>
+                                <textarea 
+                                    v-model="form.plantel.beneficios_adicionales" 
+                                    class="form-input font-medium" 
+                                    rows="4" 
+                                    placeholder="Escriba aquí los beneficios adicionales otorgados al cliente (Mínimo 20 caracteres)..." 
+                                    required 
+                                    minlength="20" 
+                                    :disabled="loading"
+                                ></textarea>
+                            </div>
+                            
                             <div class="form-group">
                                 <label class="label-style">COMENTARIOS Y ACUERDOS DE LA SESIÓN</label>
                                 <textarea v-model="form.visita.comentarios" class="form-input font-medium" rows="4" placeholder="Resumen detallado de la entrevista (Mínimo 20 caracteres)..." required minlength="20" :disabled="loading"></textarea>
@@ -597,7 +610,8 @@ const form = reactive({
         tel_oficina: '', 
         extension: '',   
         email: '',
-        director: ''
+        director: '',
+        beneficios_adicionales: ''
     },
     visita: {
         fecha: '',
@@ -782,6 +796,13 @@ const handleSubmit = async () => {
         return;
     }
 
+    // NUEVA VALIDACIÓN: Validar longitud mínima de Beneficios Adicionales
+    if (!form.plantel.beneficios_adicionales || form.plantel.beneficios_adicionales.trim().length < 20) {
+        errorMessage.value = "EL CAMPO DE 'BENEFICIOS ADICIONALES' ES OBLIGATORIO Y DEBE CONTENER AL MENOS 20 CARACTERES.";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+    }
+
     if (form.plantel.niveles.length === 0) { 
         errorMessage.value = "SELECCIONE NIVELES EDUCATIVOS."; 
         window.scrollTo({ top: 0, behavior: 'smooth' }); 
@@ -810,7 +831,8 @@ const handleSubmit = async () => {
         formData.append('plantel[extension]', form.plantel.extension);
         formData.append('plantel[email]', form.plantel.email.toLowerCase());
         formData.append('plantel[director]', form.plantel.director);
-        
+        formData.append('plantel[beneficios_adicionales]', form.plantel.beneficios_adicionales);
+
         nivelNombres.forEach((nivel, index) => {
             formData.append(`plantel[niveles][${index}]`, nivel);
         });

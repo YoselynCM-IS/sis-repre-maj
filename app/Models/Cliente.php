@@ -23,6 +23,7 @@ class Cliente extends Model
         'tel_oficina', 
         'extension',
         'direccion',
+        'beneficios_adicionales',
         'cp',              
         'municipio',      
         'colonia',        
