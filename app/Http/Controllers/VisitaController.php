@@ -108,6 +108,9 @@ class VisitaController extends Controller
             'visita.cargo'                => 'required|string',
             'visita.libros_interes'       => 'required|array',
             'visita.resultado_visita'     => 'required|in:seguimiento,compra,rechazo',
+            // NUEVAS REGLAS AGREGADAS PARA EL ARRAY INTERNO DE LIBROS DE INTERES
+            'visita.libros_interes.*.beneficio_tipo'  => 'required|in:Precio especial,Descuento por libro',
+            'visita.libros_interes.*.beneficio_valor' => 'required|numeric|min:0',
         ]);
 
         try {

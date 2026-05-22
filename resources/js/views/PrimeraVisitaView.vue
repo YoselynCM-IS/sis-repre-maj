@@ -322,7 +322,9 @@
                                                 <thead class="bg-slate-900 hidden md:table-header-group">
                                                     <tr>
                                                         <th class="table-header text-white">Libro</th>
-                                                        <th class="table-header text-center w-48 text-white">Formato</th>
+                                                        <th class="table-header text-center w-32 text-white">Formato</th>
+                                                        <th class="table-header text-center w-48 text-white">Opción Comercial *</th>
+                                                        <th class="table-header text-center w-28 text-white">Cantidad / Valor *</th>
                                                         <th class="px-6 py-3 w-20 text-white"></th>
                                                     </tr>
                                                 </thead>
@@ -336,7 +338,7 @@
                                                         </td>
 
                                                         <td class="table-cell text-left md:text-center block md:table-cell" data-label="FORMATO">
-                                                            <select v-model="item.tipo" class="select-table lbb md:max-w-[180px] md:mx-auto">
+                                                            <select v-model="item.tipo" class="select-table lbb md:max-w-[120px] md:mx-auto">
                                                                 <option v-if="item.original_type === 'digital'" value="digital">DIGITAL</option>
                                                                 <template v-else>
                                                                     <option value="fisico">FÍSICO</option>
@@ -344,6 +346,26 @@
                                                                     <option value="por_revisar">POR REVISAR</option>
                                                                 </template>
                                                             </select>
+                                                        </td>
+
+                                                        <td class="table-cell text-left md:text-center block md:table-cell" data-label="OPCIÓN COMERCIAL">
+                                                            <select v-model="item.beneficio_tipo" class="select-table lbb md:max-w-[170px] md:mx-auto" required>
+                                                                <option value="" disabled>Seleccione una opción...</option>
+                                                                <option value="Precio especial">Precio especial</option>
+                                                                <option value="Descuento por libro">Descuento por libro</option>
+                                                            </select>
+                                                        </td>
+
+                                                        <td class="table-cell text-left md:text-center block md:table-cell" data-label="VALOR">
+                                                            <input 
+                                                                v-model.number="item.beneficio_valor" 
+                                                                type="number" 
+                                                                step="any" 
+                                                                min="0" 
+                                                                class="input-table text-center font-black lbb md:max-w-[90px] md:mx-auto" 
+                                                                :placeholder="item.beneficio_tipo === 'Descuento por libro' ? '%' : '$'"
+                                                                required
+                                                            />
                                                         </td>
 
                                                         <td class="table-cell text-right block md:table-cell">
@@ -710,7 +732,15 @@ const addMaterial = (book, type) => {
     const sNom = serie ? (serie.nombre || serie.serie) : 'Sin Serie';
     if (type === 'interest') {
         if (!selectedInterestBooks.value.find(b => b.id === book.id)) {
-            selectedInterestBooks.value.push({ id: book.id, titulo: book.titulo, serie_nombre: sNom, original_type: book.type, tipo: 'fisico' });
+            selectedInterestBooks.value.push({ 
+                id: book.id, 
+                titulo: book.titulo, 
+                serie_nombre: sNom, 
+                original_type: book.type, 
+                tipo: 'fisico',
+                beneficio_tipo: '', // Campo requerido para el Tipo de Beneficio
+                beneficio_valor: '' // Campo requerido para la Cantidad/Precio/Porcentaje
+            });
         }
         interestInput.titulo = ''; interestSuggestions.value = [];
     } else {
@@ -740,6 +770,14 @@ const handleSubmit = async () => {
 
     if (selectedInterestBooks.value.length === 0) {
         errorMessage.value = "AGREGUE AL MENOS UN MATERIAL DE INTERÉS.";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+    }
+
+    // NUEVA VALIDACIÓN: Validar los campos de precio especial o descuento obligatorios en libros de interés
+    const camposIncompletos = selectedInterestBooks.value.some(libro => !libro.beneficio_tipo || libro.beneficio_valor === undefined || libro.beneficio_valor === '');
+    if (camposIncompletos) {
+        errorMessage.value = "POR FAVOR, ESPECIFIQUE EL TIPO DE BENEFICIO Y EL VALOR EN TODOS LOS LIBROS DE INTERÉS.";
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
     }
@@ -791,6 +829,8 @@ const handleSubmit = async () => {
             formData.append(`visita[libros_interes][${index}][titulo]`, libro.titulo);
             formData.append(`visita[libros_interes][${index}][serie_nombre]`, libro.serie_nombre);
             formData.append(`visita[libros_interes][${index}][tipo]`, libro.tipo);
+            formData.append(`visita[libros_interes][${index}][beneficio_tipo]`, libro.beneficio_tipo);
+            formData.append(`visita[libros_interes][${index}][beneficio_valor]`, libro.beneficio_valor);
         });
 
         selectedDeliveredBooks.value.forEach((libro, index) => {
