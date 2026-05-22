@@ -11,6 +11,7 @@ use App\Models\VisitaLog;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 
 class VisitaController extends Controller
 {
@@ -92,13 +93,16 @@ class VisitaController extends Controller
     {
         $request->validate([
             'plantel.name'      => 'required|string|max:100',
-            'plantel.rfc'       => 'required|string|max:50',
+            'plantel.rfc'       => 'nullable|string|max:50',
             'plantel.niveles'   => 'required|array|min:1',
             'plantel.direccion' => 'required|string',
             'plantel.estado_id' => 'required|exists:estados,id',
             'plantel.telefono'  => 'required|string',
+            'plantel.tel_oficina' => 'required|string',
+            'plantel.extension' => 'required|string',
             'plantel.email'     => 'required|email',
             'plantel.director'  => 'required|string',
+            'plantel.foto_plantel' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
             'visita.fecha'                => 'required|date',
             'visita.persona_entrevistada' => 'required|string',
             'visita.cargo'                => 'required|string',
@@ -107,21 +111,27 @@ class VisitaController extends Controller
         ]);
 
         try {
-            $rfc   = strtoupper($request->input('plantel.rfc'));
+            $rfc   = $request->input('plantel.rfc') ? strtoupper($request->input('plantel.rfc')) : null;
             $name  = strtoupper($request->input('plantel.name'));
             $email = strtolower($request->input('plantel.email'));
             $phone = $request->input('plantel.telefono');
+            $telOficina = $request->input('plantel.tel_oficina');
+            $extension  = $request->input('plantel.extension');
 
             // REGLA DE ORO: Validación de Integridad Total
-            $duplicado = Cliente::where('rfc', $rfc)
-                ->orWhere('name', $name)
+            $duplicadoQuery = Cliente::where('name', $name)
                 ->orWhere('email', $email)
-                ->orWhere('telefono', $phone)
-                ->first();
+                ->orWhere('telefono', $phone);
+
+            if ($rfc) {
+                $duplicadoQuery->orWhere('rfc', $rfc);
+            }
+
+            $duplicado = $duplicadoQuery->first();
 
             if ($duplicado) {
                 $campo = 'dato';
-                if ($duplicado->rfc === $rfc) $campo = 'RFC';
+                if ($rfc && $duplicado->rfc === $rfc) $campo = 'RFC';
                 elseif ($duplicado->name === $name) $campo = 'NOMBRE';
                 elseif ($duplicado->email === $email) $campo = 'CORREO';
                 elseif ($duplicado->telefono === $phone) $campo = 'TELÉFONO';
@@ -131,7 +141,7 @@ class VisitaController extends Controller
                 ], 422);
             }
 
-            return DB::transaction(function () use ($request, $rfc, $name, $email, $phone) {
+            return DB::transaction(function () use ($request, $rfc, $name, $email, $phone, $telOficina, $extension) {
                 $user = $request->user();
                 $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
 
@@ -144,6 +154,8 @@ class VisitaController extends Controller
                     'nivel_educativo' => implode(', ', $request->input('plantel.niveles')),
                     'contacto'        => strtoupper($request->input('plantel.director')),
                     'telefono'        => $phone,
+                    'tel_oficina'     => $telOficina,
+                    'extension'       => $extension,
                     'email'           => $email,
                     'direccion'       => strtoupper($request->input('plantel.direccion')),
                     'estado_id'       => $request->input('plantel.estado_id'),
@@ -152,26 +164,46 @@ class VisitaController extends Controller
                     'status'          => 'activo'
                 ]);
 
-                // GUARDAR CLIENTE EN LA OTRA BASE DE DATOS
-                $id = \DB::connection('mysql_inventario')->table('clientes')
-                    ->insertGetId([
-                        'user_id'         => 0,
-                        'tipo'            => ($request->input('visita.resultado_visita') === 'compra') ? 'CLIENTE' : 'PROSPECTO',
-                        'name'            => $name,
-                        'rfc'             => $rfc,
-                        'contacto'        => strtoupper($request->input('plantel.director')),
-                        'telefono'        => $phone,
-                        'email'           => $email,
-                        'direccion'       => strtoupper($request->input('plantel.direccion')), 
-                        'estado_id'       => $request->input('plantel.estado_id'),
-                        'latitud'         => $request->input('plantel.latitud'),
-                        'longitud'        => $request->input('plantel.longitud'),
-                        'created_at'      => Carbon::now(),
-                        'updated_at'      => Carbon::now()
-                    ]);
+                // [PUNTOS 2 y 3] Procesar la foto tras crear el cliente para incluir su ID y letras/números aleatorios
+                if ($request->hasFile('plantel.foto_plantel')) {
+                    $file = $request->file('plantel.foto_plantel');
+                    
+                    // 1. Forzar la extensión del archivo a minúsculas
+                    $extensionFile = strtolower($file->getClientOriginalExtension());
+                    
+                    // 2. Generar caracteres aleatorios en minúsculas
+                    $randomString = strtolower(Str::random(8));
+                    
+                    // 3. Unificar el nombre final asegurando que todo vaya en minúsculas
+                    $fileName = "c" . $cliente->id . "_" . $randomString . "." . $extensionFile;
+                    
+                    // 4. Guardar el archivo físicamente en la ruta limpia
+                    $pathFoto = $file->storeAs('fotos_planteles', $fileName, 'public');
+                    
+                    // 5. Actualizar el registro del cliente en la Base de Datos
+                    $cliente->update(['foto_plantel' => $pathFoto]);
+                }
+
+                // // GUARDAR CLIENTE EN LA OTRA BASE DE DATOS
+                //  $id = \DB::connection('mysql_inventario')->table('clientes')
+                //     ->insertGetId([
+                //         'user_id'         => 0,
+                //         'tipo'            => ($request->input('visita.resultado_visita') === 'compra') ? 'CLIENTE' : 'PROSPECTO',
+                //         'name'            => $name,
+                //         'rfc'             => $rfc,
+                //         'contacto'        => strtoupper($request->input('plantel.director')),
+                //         'telefono'        => $phone,
+                //         'email'           => $email,
+                //         'direccion'       => strtoupper($request->input('plantel.direccion')), 
+                //         'estado_id'       => $request->input('plantel.estado_id'),
+                //         'latitud'         => $request->input('plantel.latitud'),
+                //         'longitud'        => $request->input('plantel.longitud'),
+                //         'created_at'      => Carbon::now(),
+                //         'updated_at'      => Carbon::now()
+                //     ]);
                 
-                $cliente->update(['referencia_id' => $id]);
-                // FIN GUARDAR CLIENTE EN LA OTRA BASE DE DATOS
+                // $cliente->update(['referencia_id' => $id]);
+                // // FIN GUARDAR CLIENTE EN LA OTRA BASE DE DATOS
 
                 $visita = Visita::create([
                     'user_id'                 => $ownerId,

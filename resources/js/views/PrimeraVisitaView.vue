@@ -45,17 +45,15 @@
 
                         <!-- RFC -->
                         <div class="form-group mb-6 relative">
-                            <label class="label-style">RFC del Plantel*</label>
+                            <label class="label-style">RFC del Plantel (Opcional)</label>
                             <div class="relative">
                                 <input 
                                     v-model="form.plantel.rfc" 
                                     @blur="validateUniqueness('rfc')"
                                     type="text" 
-                                    class="form-input uppercase font-mono border-red-100 font-black text-red-900" 
+                                    class="form-input uppercase font-mono border-slate-200 font-black text-red-900" 
                                     :class="{'border-red-600 bg-red-50 ring-2 ring-red-100': fieldValidation.rfc.error}"
                                     placeholder="XXXXXXXXXXXXX" 
-                                    required 
-                                    minlength="12" 
                                     maxlength="13" 
                                     :disabled="loading"
                                 >
@@ -91,6 +89,51 @@
                             </button>
                         </div>
 
+                        <div class="seccion-foto-modulo-premium">
+                            <label class="label-style flex items-center gap-2">
+                                <i class="fas fa-camera text-red-600 text-xs"></i> Fotografía del Plantel 
+                                <span class="text-[9px] font-medium text-slate-400 lowercase italic">(Opcional)</span>
+                            </label>
+                            
+                            <div class="contenedor-dropzone-foto">
+                                <input 
+                                    type="file" 
+                                    accept="image/*" 
+                                    @change="handleFotoUpload" 
+                                    class="input-nativo-oculto"
+                                    :disabled="loading"
+                                />
+
+                                <div v-if="!fotoPreview" class="visual-vacio-foto">
+                                    <div class="circulo-icono-camara">
+                                        <i class="fas fa-image"></i>
+                                    </div>
+                                    <div class="textos-guia-drop">
+                                        <p class="txt-principal-upload">Capturar o adjuntar fotografía</p>
+                                        <p class="txt-secundario-upload">Formatos soportados: JPG, PNG, WEBP (Máx 4MB)</p>
+                                    </div>
+                                </div>
+
+                                <div v-else class="visual-preview-foto">
+                                    <div class="caja-miniatura-preview">
+                                        <img :src="fotoPreview" class="imagen-render-preview" />
+                                        <div class="capa-hover-cambio">
+                                            <p class="txt-hover-cambio"><i class="fas fa-sync-alt mr-1"></i> Cambiar Imagen</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="barra-acciones-foto">
+                                        <span class="badge-estatus-foto">
+                                            <i class="fas fa-check-circle"></i> {{ fotoFile?.name ? (fotoFile.name.length > 20 ? fotoFile.name.substring(0,20)+'...' : fotoFile.name) : 'Imagen Lista' }}
+                                        </span>
+                                        <button type="button" @click.stop="removeFoto" class="btn-borrar-foto-premium">
+                                            <i class="fas fa-times mr-1"></i> Eliminar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- NIVELES -->
                         <div class="form-group mb-6">
                             <label class="label-style">Niveles Educativos*</label>
@@ -120,46 +163,74 @@
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="form-group relative">
-                                <label class="label-style">Teléfono *</label>
-                                <div class="relative">
+                            <div class="grid grid-cols-3 gap-3">
+                                <div class="form-group col-span-2 relative">
+                                    <label class="label-style">Teléfono 1 *</label>
+                                    <div class="relative">
+                                        <input 
+                                            v-model="form.plantel.telefono" 
+                                            @blur="validateUniqueness('telefono')"
+                                            type="tel" 
+                                            class="form-input font-bold" 
+                                            :class="{'border-red-500 bg-red-50': fieldValidation.telefono.error}"
+                                            placeholder="Número principal" 
+                                            required 
+                                            minlength="10" 
+                                            maxlength="10"
+                                            :disabled="loading"
+                                        >
+                                        <i v-if="validatingFields.telefono" class="fas fa-spinner fa-spin absolute right-4 top-1/2 -translate-y-1/2 text-red-600"></i>
+                                        <p v-if="fieldValidation.telefono.error" class="text-[9px] text-red-600 font-black mt-1 uppercase animate-pulse">
+                                            <i class="fas fa-times-circle"></i> {{ fieldValidation.telefono.message }}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="form-group col-span-1">
+                                    <label class="label-style">Extensión *</label>
                                     <input 
-                                        v-model="form.plantel.telefono" 
-                                        @blur="validateUniqueness('telefono')"
-                                        type="tel" 
+                                        v-model="form.plantel.extension" 
+                                        type="text" 
                                         class="form-input font-bold" 
-                                        :class="{'border-red-500 bg-red-50': fieldValidation.telefono.error}"
-                                        placeholder="Número de contacto" 
-                                        required 
-                                        minlength="10" 
-                                        maxlength="10"
+                                        placeholder="Ext." 
+                                        maxlength="6"
+                                        required
                                         :disabled="loading"
                                     >
-                                    <i v-if="validatingFields.telefono" class="fas fa-spinner fa-spin absolute right-4 top-1/2 -translate-y-1/2 text-red-600"></i>
-                                    <p v-if="fieldValidation.telefono.error" class="text-[9px] text-red-600 font-black mt-1 uppercase animate-pulse">
-                                        <i class="fas fa-times-circle"></i> {{ fieldValidation.telefono.message }}
-                                    </p>
                                 </div>
                             </div>
 
                             <div class="form-group relative">
-                                <label class="label-style">Correo Electrónico *</label>
-                                <div class="relative">
-                                    <input 
-                                        v-model="form.plantel.email" 
-                                        @blur="validateUniqueness('email')"
-                                        type="email" 
-                                        class="form-input font-bold" 
-                                        :class="{'border-red-500 bg-red-50': fieldValidation.email.error}"
-                                        placeholder="Correo de contacto" 
-                                        required 
-                                        :disabled="loading"
-                                    >
-                                    <i v-if="validatingFields.email" class="fas fa-spinner fa-spin absolute right-4 top-1/2 -translate-y-1/2 text-red-600"></i>
-                                    <p v-if="fieldValidation.email.error" class="text-[9px] text-red-600 font-black mt-1 uppercase animate-pulse">
-                                        <i class="fas fa-times-circle"></i> {{ fieldValidation.email.message }}
-                                    </p>
-                                </div>
+                                <label class="label-style">Teléfono Oficina *</label>
+                                <input 
+                                    v-model="form.plantel.tel_oficina" 
+                                    type="tel" 
+                                    class="form-input font-bold" 
+                                    placeholder="Número de oficina" 
+                                    required
+                                    minlength="10" 
+                                    maxlength="10"
+                                    :disabled="loading"
+                                >
+                            </div>
+                        </div>
+
+                        <div class="form-group relative mt-6">
+                            <label class="label-style">Correo Electrónico *</label>
+                            <div class="relative">
+                                <input 
+                                    v-model="form.plantel.email" 
+                                    @blur="validateUniqueness('email')"
+                                    type="email" 
+                                    class="form-input font-bold" 
+                                    :class="{'border-red-500 bg-red-50': fieldValidation.email.error}"
+                                    placeholder="Correo de contacto" 
+                                    required 
+                                    :disabled="loading"
+                                >
+                                <i v-if="validatingFields.email" class="fas fa-spinner fa-spin absolute right-4 top-1/2 -translate-y-1/2 text-red-600"></i>
+                                <p v-if="fieldValidation.email.error" class="text-[9px] text-red-600 font-black mt-1 uppercase animate-pulse">
+                                    <i class="fas fa-times-circle"></i> {{ fieldValidation.email.message }}
+                                </p>
                             </div>
                         </div>
 
@@ -205,158 +276,154 @@
                         </div>
 
                         <!-- LIBROS DE INTERÉS Y MUESTRAS -->
-                       <div class="space-y-10 animate-fade-in pb-20">
+                        <div class="space-y-10 animate-fade-in pb-20">
     
-    <!-- 3. SECCIÓN: LIBROS DE INTERÉS -->
-    <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
-        <div class="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 mb-6 relative" style="overflow: visible !important;">
-            <label class="label-mini label-large mb-4 text-slate-600 font-black tracking-tighter uppercase">
-                <i class="fas fa-eye mr-1 text-blue-500"></i> 3. Libros de Interés
-            </label>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                <div class="form-group">
-                    <label class="label-mini">Filtrar por Serie</label>
-                    <select v-model="selectedSerieIdA" class="form-input font-bold text-xs lbb" @change="handleSerieChange('interest')">
-                        <option value="">Cualquier serie...</option>
-                        <option v-for="s in seriesFiltradas" :key="s.id" :value="s.id">{{ s.nombre }}</option>
-                        <option value="otro">VER TODAS LAS SERIES</option>
-                    </select>
-                </div>
-                <div class="form-group relative">
-                    <label class="label-mini">Buscar y Añadir Libro</label>
-                    <div class="relative">
-                        <input 
-                            v-model="interestInput.titulo" 
-                            type="text" 
-                            class="form-input pr-10 font-bold lbb" 
-                            placeholder="Título o ISBN..." 
-                            @input="searchBooks($event, 'interest')"
-                            autocomplete="off"
-                        >
-                        <i v-if="searchingInterest" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                    </div>
-                    <ul v-if="interestSuggestions.length" class="autocomplete-list shadow-2xl border border-slate-100">
-                        <li v-for="b in interestSuggestions" :key="b.id" @click="addMaterial(b, 'interest')" class="text-[11px] font-black uppercase text-slate-700 hover:bg-blue-50 p-3 transition-colors">
-                            <div class="flex justify-between items-center w-full">
-                                <span class="truncate uppercase">{{ b.titulo }}</span>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-            
-            <div v-if="selectedInterestBooks.length" class="table-container mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                <div class="table-responsive border-none">
-                    <table class="w-full divide-y divide-gray-200 responsive-table">
-                        <thead class="bg-slate-900 hidden md:table-header-group">
-                            <tr>
-                                <th class="table-header text-white">Libro</th>
-                                <th class="table-header text-center w-48 text-white">Formato</th>
-                                <th class="px-6 py-3 w-20 text-white"></th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-100 block md:table-row-group">
-                            <tr v-for="(item, idx) in selectedInterestBooks" :key="idx" 
-                                class="hover:bg-gray-50 transition-colors block md:table-row relative p-5 md:p-0 border-b md:border-none">
-                                
-                                <td class="table-cell block md:table-cell" data-label="LIBRO">
-                                    <div class="text-xs font-black text-slate-800 uppercase leading-tight">{{ item.titulo }}</div>
-                                    <div class="text-[9px] font-black text-slate-400 uppercase tracking-tighter mt-1">{{ item.serie_nombre }}</div>
-                                </td>
+                            <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
+                                <div class="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 mb-6 relative" style="overflow: visible !important;">
+                                    <label class="label-mini label-large mb-4 text-slate-600 font-black tracking-tighter uppercase">
+                                        <i class="fas fa-eye mr-1 text-blue-500"></i> 3. Libros de Interés
+                                    </label>
+                                    
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                                        <div class="form-group">
+                                            <label class="label-mini">Filtrar por Serie</label>
+                                            <select v-model="selectedSerieIdA" class="form-input font-bold text-xs lbb" @change="handleSerieChange('interest')">
+                                                <option value="">Cualquier serie...</option>
+                                                <option v-for="s in seriesFiltradas" :key="s.id" :value="s.id">{{ s.nombre }}</option>
+                                                <option value="otro">VER TODAS LAS SERIES</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group relative">
+                                            <label class="label-mini">Buscar y Añadir Libro</label>
+                                            <div class="relative">
+                                                <input 
+                                                    v-model="interestInput.titulo" 
+                                                    type="text" 
+                                                    class="form-input pr-10 font-bold lbb" 
+                                                    placeholder="Título o ISBN..." 
+                                                    @input="searchBooks($event, 'interest')"
+                                                    autocomplete="off"
+                                                >
+                                                <i v-if="searchingInterest" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                            </div>
+                                            <ul v-if="interestSuggestions.length" class="autocomplete-list shadow-2xl border border-slate-100">
+                                                <li v-for="b in interestSuggestions" :key="b.id" @click="addMaterial(b, 'interest')" class="text-[11px] font-black uppercase text-slate-700 hover:bg-blue-50 p-3 transition-colors">
+                                                    <div class="flex justify-between items-center w-full">
+                                                        <span class="truncate uppercase">{{ b.titulo }}</span>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    
+                                    <div v-if="selectedInterestBooks.length" class="table-container mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                                        <div class="table-responsive border-none">
+                                            <table class="w-full divide-y divide-gray-200 responsive-table">
+                                                <thead class="bg-slate-900 hidden md:table-header-group">
+                                                    <tr>
+                                                        <th class="table-header text-white">Libro</th>
+                                                        <th class="table-header text-center w-48 text-white">Formato</th>
+                                                        <th class="px-6 py-3 w-20 text-white"></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="bg-white divide-y divide-gray-100 block md:table-row-group">
+                                                    <tr v-for="(item, idx) in selectedInterestBooks" :key="idx" 
+                                                        class="hover:bg-gray-50 transition-colors block md:table-row relative p-5 md:p-0 border-b md:border-none">
+                                                        
+                                                        <td class="table-cell block md:table-cell" data-label="LIBRO">
+                                                            <div class="text-xs font-black text-slate-800 uppercase leading-tight">{{ item.titulo }}</div>
+                                                            <div class="text-[9px] font-black text-slate-400 uppercase tracking-tighter mt-1">{{ item.serie_nombre }}</div>
+                                                        </td>
 
-                                <td class="table-cell text-left md:text-center block md:table-cell" data-label="FORMATO">
-                                    <select v-model="item.tipo" class="select-table lbb md:max-w-[180px] md:mx-auto">
-                                        <option v-if="item.original_type === 'digital'" value="digital">DIGITAL</option>
-                                        <template v-else>
-                                            <option value="fisico">FÍSICO</option>
-                                            <option value="paquete">PAQUETE</option>
-                                            <option value="por_revisar">POR REVISAR</option>
-                                        </template>
-                                    </select>
-                                </td>
+                                                        <td class="table-cell text-left md:text-center block md:table-cell" data-label="FORMATO">
+                                                            <select v-model="item.tipo" class="select-table lbb md:max-w-[180px] md:mx-auto">
+                                                                <option v-if="item.original_type === 'digital'" value="digital">DIGITAL</option>
+                                                                <template v-else>
+                                                                    <option value="fisico">FÍSICO</option>
+                                                                    <option value="paquete">PAQUETE</option>
+                                                                    <option value="por_revisar">POR REVISAR</option>
+                                                                </template>
+                                                            </select>
+                                                        </td>
 
-                                <td class="table-cell text-right block md:table-cell">
-                                    <button type="button" @click="selectedInterestBooks.splice(idx, 1)" class="btn-secondary flex items-center justify-end gap-1 w-full text-[10px] font-black uppercase text-red-400 hover:text-red-600">
-                                        <i class="fas fa-trash-alt"></i> <span class="md:hidden">Quitar</span>
-                                    </button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 4. SECCIÓN: MUESTRAS ENTREGADAS -->
-    <div class="mt-6 form-section bg-red-50/30 p-6 rounded-[2.5rem] border border-red-100 relative" style="overflow: visible !important;">
-        <label class="label-mini mb-4 text-red-800 label-large font-black tracking-tighter uppercase">
-            <i class="fas fa-box-open mr-1"></i> 4. MUESTRAS DE PROMOCIÓN ENTREGADAS
-        </label>
-        
-        <div class="form-group relative mb-4">
-            <label class="label-mini">Buscar Libro para Entrega Física</label>
-            <div class="relative">
-                <input 
-                    v-model="deliveredInput.titulo" 
-                    type="text" 
-                    class="form-input pr-10 font-bold border-red-100 shadow-sm lbb" 
-                    placeholder="Escribe título o ISBN..." 
-                    @input="searchBooks($event, 'delivered')"
-                    autocomplete="off"
-                >
-                <i v-if="searchingDelivered" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-red-400"></i>
-            </div>
-            <ul v-if="deliveredSuggestions.length" class="autocomplete-list shadow-2xl border border-red-100">
-                <li v-for="b in deliveredSuggestions" :key="b.id" @click="addMaterial(b, 'delivered')" class="text-[11px] font-black uppercase text-slate-700 hover:bg-red-50 p-3 transition-colors">
-                    <div class="flex justify-between items-center w-full">
-                        <span class="truncate uppercase">{{ b.titulo }}</span>
-                    </div>
-                </li>
-            </ul>
-        </div>
-        
-        <div v-if="selectedDeliveredBooks.length" class="table-modern-wrapper mt-6 overflow-hidden rounded-2xl border border-red-100 bg-white shadow-sm">
-            <div class="table-responsive border-none">
-                <table class="w-full divide-y divide-gray-200 responsive-table">
-                    <thead class="bg-red-900 hidden md:table-header-group">
-                        <tr>
-                            <th class="table-header text-white">Libro</th>
-                            <th class="table-header text-center w-40 text-white">Cantidad</th>
-                            <th class="px-6 py-3 w-20 text-white"></th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-red-50 block md:table-row-group">
-                        <tr v-for="(item, idx) in selectedDeliveredBooks" :key="idx" class="hover:bg-red-50/20 transition-colors block md:table-row relative p-5 md:p-0 border-b md:border-none">
-                            
-                            <td class="table-cell block md:table-cell" data-label="LIBRO">
-                                <div class="text-xs font-black text-slate-800 uppercase leading-tight">{{ item.titulo }}</div>
-                            </td>
-
-                            <td class="table-cell text-left md:text-center block md:table-cell" data-label="CANTIDAD">
-                                <div class="flex justify-start md:justify-center">
-                                    <div class="quantity-control-wrapper w-full md:w-32">
-                                        <input v-model.number="item.cantidad" type="number" min="1" class="input-table text-center font-black lbb" />
+                                                        <td class="table-cell text-right block md:table-cell">
+                                                            <button type="button" @click="selectedInterestBooks.splice(idx, 1)" class="btn-secondary flex items-center justify-end gap-1 w-full text-[10px] font-black uppercase text-red-400 hover:text-red-600">
+                                                                <i class="fas fa-trash-alt"></i> <span class="md:hidden">Quitar</span>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
-                            </td>
+                            </div>
 
-                            <td class="table-cell text-right block md:table-cell">
-                                <button type="button" @click="selectedDeliveredBooks.splice(idx, 1)" class="btn-secondary flex items-center justify-end gap-1 w-full text-[10px] font-black uppercase text-red-400 hover:text-red-600">
-                                    <i class="fas fa-trash-alt"></i> <span class="md:hidden">Quitar</span>
-                                </button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+                            <div class="mt-6 form-section bg-red-50/30 p-6 rounded-[2.5rem] border border-red-100 relative" style="overflow: visible !important;">
+                                <label class="label-mini mb-4 text-red-800 label-large font-black tracking-tighter uppercase">
+                                    <i class="fas fa-box-open mr-1"></i> 4. MUESTRAS DE PROMOCIÓN ENTREGADAS
+                                </label>
+                                
+                                <div class="form-group relative mb-4">
+                                    <label class="label-mini">Buscar Libro para Entrega Física</label>
+                                    <div class="relative">
+                                        <input 
+                                            v-model="deliveredInput.titulo" 
+                                            type="text" 
+                                            class="form-input pr-10 font-bold border-red-100 shadow-sm lbb" 
+                                            placeholder="Escribe título o ISBN..." 
+                                            @input="searchBooks($event, 'delivered')"
+                                            autocomplete="off"
+                                        >
+                                        <i v-if="searchingDelivered" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-red-400"></i>
+                                    </div>
+                                    <ul v-if="deliveredSuggestions.length" class="autocomplete-list shadow-2xl border border-red-100">
+                                        <li v-for="b in deliveredSuggestions" :key="b.id" @click="addMaterial(b, 'delivered')" class="text-[11px] font-black uppercase text-slate-700 hover:bg-red-50 p-3 transition-colors">
+                                            <div class="flex justify-between items-center w-full">
+                                                <span class="truncate uppercase">{{ b.titulo }}</span>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                                
+                                <div v-if="selectedDeliveredBooks.length" class="table-modern-wrapper mt-6 overflow-hidden rounded-2xl border border-red-100 bg-white shadow-sm">
+                                    <div class="table-responsive border-none">
+                                        <table class="w-full divide-y divide-gray-200 responsive-table">
+                                            <thead class="bg-red-900 hidden md:table-header-group">
+                                                <tr>
+                                                    <th class="table-header text-white">Libro</th>
+                                                    <th class="table-header text-center w-40 text-white">Cantidad</th>
+                                                    <th class="px-6 py-3 w-20 text-white"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="bg-white divide-y divide-red-50 block md:table-row-group">
+                                                <tr v-for="(item, idx) in selectedDeliveredBooks" :key="idx" class="hover:bg-red-50/20 transition-colors block md:table-row relative p-5 md:p-0 border-b md:border-none">
+                                                    
+                                                    <td class="table-cell block md:table-cell" data-label="LIBRO">
+                                                        <div class="text-xs font-black text-slate-800 uppercase leading-tight">{{ item.titulo }}</div>
+                                                    </td>
 
-</div>
+                                                    <td class="table-cell text-left md:text-center block md:table-cell" data-label="CANTIDAD">
+                                                        <div class="flex justify-start md:justify-center">
+                                                            <div class="quantity-control-wrapper w-full md:w-32">
+                                                                <input v-model.number="item.cantidad" type="number" min="1" class="input-table text-center font-black lbb" />
+                                                            </div>
+                                                        </div>
+                                                    </td>
 
-                        <!-- RESULTADO Y AGENDA -->
+                                                    <td class="table-cell text-right block md:table-cell">
+                                                        <button type="button" @click="selectedDeliveredBooks.splice(idx, 1)" class="btn-secondary flex items-center justify-end gap-1 w-full text-[10px] font-black uppercase text-red-400 hover:text-red-600">
+                                                            <i class="fas fa-trash-alt"></i> <span class="md:hidden">Quitar</span>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
                             <label class="label-mini mb-4 text-red-800 label-large font-black tracking-tighter"><i class="fas fa-box-open mr-1"></i> 5. RESULTADO Y COMENTARIOS DE LA SESIÓN</label>
                             
@@ -374,10 +441,9 @@
                                 <textarea v-model="form.visita.comentarios" class="form-input font-medium" rows="4" placeholder="Resumen detallado de la entrevista (Mínimo 20 caracteres)..." required minlength="20" :disabled="loading"></textarea>
                             </div>
                         </div>
-                          <div v-if="form.visita.resultado_visita === 'seguimiento'" class="form-group mb-6 p-6 bg-orange-50 rounded-[2.5rem] border-2 border-orange-100 animate-fade-in shadow-inner">
-                            
-                        <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
-                                 <label class="label-mini mb-4 text-red-800 label-large font-black tracking-tighter"><i class="fas fa-box-open mr-1"></i> 6. PROXIMO COMPROMISO</label>
+                        <div v-if="form.visita.resultado_visita === 'seguimiento'" class="form-group mb-6 p-6 bg-orange-50 rounded-[2.5rem] border-2 border-orange-100 animate-fade-in shadow-inner">
+                            <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
+                                <label class="label-mini mb-4 text-red-800 label-large font-black tracking-tighter"><i class="fas fa-box-open mr-1"></i> 6. PROXIMO COMPROMISO</label>
                            
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
@@ -397,7 +463,6 @@
                     </div>
                 </div>
 
-                <!-- BOTONES FINALES -->
                 <div class="mt-10 flex flex-col md:flex-row justify-end gap-4 border-t border-slate-100 pt-8 pb-20">
                     <button type="button" @click="$router.push('/visitas')" class="btn-secondary px-10 py-4 rounded-2xl font-bold uppercase text-xs tracking-widest bg-white border-2 border-slate-200 text-black" :disabled="loading">Cancelar</button>
                     <button type="submit" class="btn-primary px-20 py-4 shadow-xl shadow-red-900/10 transition-all active:scale-95" :disabled="loading || anyDuplicate || isProcessingCheck || gettingLocation">
@@ -408,7 +473,6 @@
             </form>
         </div>
 
-        <!-- MODAL DE ÉXITO -->
         <Teleport to="body">
             <Transition name="modal-fade">
                 <div v-if="showSuccessModal" class="modal-overlay-custom">
@@ -422,7 +486,6 @@
             </Transition>
         </Teleport>
 
-        <!-- MENSAJE DE ERROR GENERAL -->
         <Teleport to="body">
             <Transition name="modal-fade">
                 <div v-if="errorMessage" class="modal-overlay-custom">
@@ -452,9 +515,10 @@ const errorMessage = ref(null);
 const isProcessingCheck = ref(false); 
 const attemptedSubmit = ref(false); 
 
-/**
- * LÓGICA DE ESTADO PARA VALIDACIÓN DE DUPLICADOS
- */
+// Referencias reactivas para el manejo y preview de la foto
+const fotoFile = ref(null);
+const fotoPreview = ref(null);
+
 const checkStates = reactive({
     name:  { checking: false, isDuplicate: false, verified: false },
     rfc:   { checking: false, isDuplicate: false, verified: false },
@@ -462,9 +526,6 @@ const checkStates = reactive({
     phone: { checking: false, isDuplicate: false, verified: false }
 });
 
-/**
- * VALIDACIÓN PROACTIVA GLOBAL
- */
 const fieldValidation = reactive({ 
     name: { error: false, message: '' },
     rfc: { error: false, message: '' }, 
@@ -502,8 +563,30 @@ const deliveredInput = reactive({ titulo: '' });
 let bookTimer = null;
 
 const form = reactive({
-    plantel: { name: '', rfc: '', niveles: [], direccion: '', estado_id: '', telefono: '', email: '', director: '', latitud: null, longitud: null },
-    visita: { fecha: new Date().toISOString().split('T')[0], persona_entrevistada: '', cargo: 'Director/Coordinador', cargo_especifico: '', comentarios: '', resultado_visita: 'seguimiento', proxima_visita: '', proxima_accion: 'visita' }
+    plantel: {
+        name: '',
+        rfc: '',
+        latitud: null,
+        longitud: null,
+        niveles: [],
+        estado_id: '',
+        direccion: '',
+        telefono: '',    
+        tel_oficina: '', 
+        extension: '',   
+        email: '',
+        director: ''
+    },
+    visita: {
+        fecha: '',
+        persona_entrevistada: '',
+        cargo: 'Director/Coordinador',
+        cargo_especifico: '',
+        resultado_visita: 'seguimiento',
+        comentarios: '',
+        proxima_visita: '',
+        proxima_accion: 'visita'
+    }
 });
 
 const seriesFiltradas = computed(() => {
@@ -513,22 +596,43 @@ const seriesFiltradas = computed(() => {
 
 const savedClientType = computed(() => form.visita.resultado_visita === 'compra' ? 'Cliente' : 'Prospecto');
 
-/**
- * FUNCIÓN CENTRAL DE VALIDACIÓN DE DUPLICADOS (Sincronizada con SearchController global)
- */
+// Funciones para gestionar el archivo de foto
+const handleFotoUpload = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (file.size > 4 * 1024 * 1024) {
+        alert("La imagen excede el límite permitido de 4MB.");
+        return;
+    }
+
+    fotoFile.value = file;
+    fotoPreview.value = URL.createObjectURL(file);
+};
+
+const removeFoto = () => {
+    fotoFile.value = null;
+    if (fotoPreview.value) {
+        URL.revokeObjectURL(fotoPreview.value);
+        fotoPreview.value = null;
+    }
+};
+
 const validateUniqueness = async (field) => {
     let val = '';
     let queryParam = field; 
     let minLen = 5;
 
-    if (field === 'name') { val = form.plantel.name?.trim(); queryParam = 'nombre'; minLen = 5; }
-    else if (field === 'rfc') { val = form.plantel.rfc?.trim().toUpperCase(); queryParam = 'rfc'; minLen = 12; }
-    else if (field === 'email') { val = form.plantel.email?.trim().toLowerCase(); queryParam = 'correo'; minLen = 5; }
-    else if (field === 'telefono') { val = form.plantel.telefono?.trim(); queryParam = 'telefono'; minLen = 10; }
+    if (field === 'name') { val = form.plantel.name?.trim() || ''; queryParam = 'nombre'; minLen = 5; }
+    else if (field === 'rfc') { val = form.plantel.rfc?.trim().toUpperCase() || ''; queryParam = 'rfc'; minLen = 12; }
+    else if (field === 'email') { val = form.plantel.email?.trim().toLowerCase() || ''; queryParam = 'correo'; minLen = 5; }
+    else if (field === 'telefono') { val = form.plantel.telefono?.trim() || ''; queryParam = 'telefono'; minLen = 10; }
 
     if (!val || val.length < minLen) {
-        fieldValidation[field].error = false;
-        fieldValidation[field].message = '';
+        if (fieldValidation[field]) {
+            fieldValidation[field].error = false;
+            fieldValidation[field].message = '';
+        }
         return;
     }
 
@@ -547,14 +651,13 @@ const validateUniqueness = async (field) => {
             fieldValidation[field].message = '';
         }
     } catch (e) { 
-        fieldValidation[field].error = false; 
+        if (fieldValidation[field]) fieldValidation[field].error = false; 
     } finally { 
         validatingFields[field] = false; 
         isProcessingCheck.value = false; 
     }
 };
 
-// Mapeo heredado para compatibilidad con el diseño original (checkStates)
 watch(() => fieldValidation.name.error, (val) => checkStates.name.isDuplicate = val);
 watch(() => fieldValidation.rfc.error, (val) => checkStates.rfc.isDuplicate = val);
 watch(() => fieldValidation.email.error, (val) => checkStates.email.isDuplicate = val);
@@ -655,16 +758,58 @@ const handleSubmit = async () => {
 
         const finalCargo = form.visita.cargo === 'Otro' ? form.visita.cargo_especifico : form.visita.cargo;
 
-        const payload = {
-            plantel: { ...form.plantel, niveles: nivelNombres, email: form.plantel.email.toLowerCase() },
-            visita: { 
-                ...form.visita, 
-                cargo: finalCargo, 
-                libros_interes: { interes: selectedInterestBooks.value, entregado: selectedDeliveredBooks.value }
-            }
-        };
+        // Construcción del FormData respetando de forma idéntica los tipos de datos originales
+        const formData = new FormData();
+        
+        formData.append('plantel[name]', form.plantel.name);
+        formData.append('plantel[rfc]', form.plantel.rfc);
+        formData.append('plantel[latitud]', form.plantel.latitud);
+        formData.append('plantel[longitud]', form.plantel.longitud);
+        formData.append('plantel[estado_id]', form.plantel.estado_id);
+        formData.append('plantel[direccion]', form.plantel.direccion);
+        formData.append('plantel[telefono]', form.plantel.telefono);
+        formData.append('plantel[tel_oficina]', form.plantel.tel_oficina);
+        formData.append('plantel[extension]', form.plantel.extension);
+        formData.append('plantel[email]', form.plantel.email.toLowerCase());
+        formData.append('plantel[director]', form.plantel.director);
+        
+        nivelNombres.forEach((nivel, index) => {
+            formData.append(`plantel[niveles][${index}]`, nivel);
+        });
 
-        await axios.post('/visitas/primera', payload);
+        formData.append('visita[fecha]', form.visita.fecha);
+        formData.append('visita[persona_entrevistada]', form.visita.persona_entrevistada);
+        formData.append('visita[cargo]', finalCargo);
+        formData.append('visita[resultado_visita]', form.visita.resultado_visita);
+        formData.append('visita[comentarios]', form.visita.comentarios);
+        formData.append('visita[proxima_visita]', form.visita.proxima_visita);
+        formData.append('visita[proxima_accion]', form.visita.proxima_accion);
+        
+        // CORRECCIÓN AQUÍ: Se mapean uno a uno de vuelta a un array iterable para que Laravel lo acepte como array normal.
+        selectedInterestBooks.value.forEach((libro, index) => {
+            formData.append(`visita[libros_interes][${index}][id]`, libro.id);
+            formData.append(`visita[libros_interes][${index}][titulo]`, libro.titulo);
+            formData.append(`visita[libros_interes][${index}][serie_nombre]`, libro.serie_nombre);
+            formData.append(`visita[libros_interes][${index}][tipo]`, libro.tipo);
+        });
+
+        selectedDeliveredBooks.value.forEach((libro, index) => {
+            formData.append(`visita[muestras_entregadas][${index}][id]`, libro.id);
+            formData.append(`visita[muestras_entregadas][${index}][titulo]`, libro.titulo);
+            formData.append(`visita[muestras_entregadas][${index}][cantidad]`, libro.cantidad);
+        });
+
+        // ÚNICA ADICIÓN: La foto si existe
+        if (fotoFile.value) {
+            formData.append('plantel[foto_plantel]', fotoFile.value);
+        }
+
+        await axios.post('/visitas/primera', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        
         showSuccessModal.value = true;
     } catch (e) {
         errorMessage.value = e.response?.data?.message || "Error al procesar el alta.";
@@ -690,9 +835,6 @@ onMounted(fetchInitialData);
 
 .btn-primary { background: linear-gradient(135deg, #e4989c 0%, #d46a8a 100%); color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; }
 .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(169, 51, 57, 0.3); }
-
-.btn-gps-action { color: white; border: none; font-weight: 900; cursor: pointer; border-radius: 16px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
-.btn-gps-action:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .autocomplete-list { position: absolute; z-index: 2000; width: 100%; background: white; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.2); max-height: 250px; overflow-y: auto; list-style: none; padding: 10px; margin: 8px 0 0; }
 .autocomplete-list li { padding: 12px 16px; cursor: pointer; border-radius: 12px; border-bottom: 1px solid #f8fafc; transition: all 0.2s; }
@@ -722,8 +864,6 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
 
 .btn-icon-delete { background: none; border: none; color: #cbd5e1; font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: color 0.2s; display: inline-flex; align-items: center; gap: 4px; }
 .btn-icon-delete:hover { color: #dc2626; }
-.btn-icon-delete-simple { background: none; border: none; color: #cbd5e1; font-size: 0.9rem; cursor: pointer; transition: color 0.2s; }
-.btn-icon-delete-simple:hover { color: #dc2626; }
 .label-large { display: block; font-size: 0.79rem; font-weight: 900; text-transform: uppercase; color: #000000; margin-bottom: 6px; letter-spacing: 0.12em; opacity: 0.8; }
 
 .btn-secondary {
@@ -737,10 +877,184 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
     text-transform: uppercase;
     cursor: pointer;
 }
-.btn-secondary-custom { @apply bg-white border-2 border-slate-200 py-3 px-8 rounded-2xl text-sm font-black transition-all hover:bg-slate-50 text-black; }
-
-.bgcolor { background: #fef2f2; border: 1px solid #fee2e2; padding: 16px; border-radius: 12px; }
 .error-icon-wrapper { width: 80px; height: 80px; background: #fee2e2; color: #b91c1c; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin: 0 auto 25px; border: 4px solid white; }
 .modal-title-error { font-size: 1.75rem; font-weight: 900; color: #b91c1c; margin-bottom: 12px; text-transform: uppercase; }
 .modal-text-error { color: #991b1b; font-size: 0.95rem; line-height: 1.6; font-weight: 700; text-transform: uppercase; }
+
+/* =======================================================
+   REGLAS CSS INDEPENDIENTES PARA LA SECCIÓN DE FOTOGRAFÍA
+   ======================================================= */
+.seccion-foto-modulo-premium {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 24px;
+  padding: 20px;
+  margin-top: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.contenedor-dropzone-foto {
+  position: relative;
+  border: 2px dashed #cbd5e1;
+  background-color: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.contenedor-dropzone-foto:hover {
+  border-color: #f87171;
+  background-color: #fffafb;
+}
+
+.input-nativo-oculto {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.visual-vacio-foto {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.circulo-icono-camara {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #fef2f2;
+  color: #ef4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.1);
+  transition: background-color 0.3s ease;
+}
+
+.contenedor-dropzone-foto:hover .circulo-icono-camara {
+  background-color: #fee2e2;
+}
+
+.textos-guia-drop {
+  text-align: center;
+}
+
+.txt-principal-upload {
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: #334155;
+  letter-spacing: 0.05em;
+}
+
+.txt-secundario-upload {
+  font-size: 9px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  margin-top: 4px;
+}
+
+.visual-preview-foto {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+  z-index: 20;
+}
+
+.caja-miniatura-preview {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 4px solid #ffffff;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.imagen-render-preview {
+  max-height: 160px;
+  object-fit: cover;
+}
+
+.capa-hover-cambio {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.caja-miniatura-preview:hover .capa-hover-cambio {
+  opacity: 1;
+}
+
+.txt-hover-cambio {
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.barra-acciones-foto {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.badge-estatus-foto {
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: #15803d;
+  background-color: #f0fdf4;
+  border: 1px solid #dcfce7;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  letter-spacing: 0.05em;
+}
+
+.btn-borrar-foto-premium {
+  background-color: #0f172a;
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.2s ease;
+}
+
+.btn-borrar-foto-premium:hover {
+  background-color: #dc2626;
+}
 </style>

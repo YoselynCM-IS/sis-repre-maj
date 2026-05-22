@@ -14,7 +14,6 @@ class Cliente extends Model
 
     protected $fillable = [
         'referencia_id',
-        'user_id',
         'tipo', 
         'nivel_educativo', 
         'name', 
@@ -22,7 +21,12 @@ class Cliente extends Model
         'email', 
         'telefono', 
         'tel_oficina', 
-        'direccion', 
+        'extension',
+        'direccion',
+        'cp',              
+        'municipio',      
+        'colonia',        
+        'calle_num', 
         'latitud',
         'longitud',
         'estado_id', 
@@ -30,12 +34,10 @@ class Cliente extends Model
         'condiciones_pago', 
         'rfc', 
         'regimen_fiscal', 
-        'cp',             
-        'municipio',      
-        'colonia',        
-        'calle_num',      
         'fiscal', 
-        'status'
+        'user_id',
+        'status',
+        'foto_plantel',
     ];
 
     public function pedidos()
@@ -76,5 +78,21 @@ class Cliente extends Model
     public function scopeClientesActivos($query)
     {
         return $query->where('tipo', 'CLIENTE')->where('status', 'activo');
+    }
+
+    /**
+     * Mutador nativo para asegurar que la ruta de la foto se guarde 
+     * en minúsculas y se salte cualquier formato global del Trait.
+     */
+    protected function fotoPlantel(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            set: function ($value) {
+                // Forzamos a minúsculas y guardamos directo en el array interno 
+                // saltándonos cualquier evento o Trait intermedio.
+                $this->attributes['foto_plantel'] = strtolower($value);
+                return strtolower($value);
+            }
+        );
     }
 }
