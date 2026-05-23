@@ -80,6 +80,47 @@
                                 {{ form.plantel.latitud }}, {{ form.plantel.longitud }}
                             </div>
                         </div>
+                        <div class="seccion-foto-modulo-premium mb-6">
+                            <label style="font-size: 14px;"><strong>Fotografía del Plantel (Opcional)</strong></label>
+                            
+                            <div class="contenedor-dropzone-foto">
+                                <input 
+                                    type="file" 
+                                    accept="image/*" 
+                                    @change="handleFotoUpload" 
+                                    class="input-nativo-oculto"
+                                    :disabled="!visita?.es_primera_visita" 
+                                />
+
+                                <div v-if="!fotoPreview" class="visual-vacio-foto">
+                                    <div class="circulo-icono-camara">
+                                        <i class="fas fa-image"></i>
+                                    </div>
+                                    <div class="textos-guia-drop">
+                                        <p class="txt-principal-upload">Capturar o adjuntar fotografía</p>
+                                        <p class="txt-secundario-upload">Formatos soportados: JPG, PNG, WEBP (Máx 4MB)</p>
+                                    </div>
+                                </div>
+
+                                <div v-else class="visual-preview-foto">
+                                    <div class="caja-miniatura-preview">
+                                        <img :src="fotoPreview" class="imagen-render-preview" />
+                                        <div class="capa-hover-cambio">
+                                            <p class="txt-hover-cambio"><i class="fas fa-sync-alt mr-1"></i> Cambiar Imagen</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="barra-acciones-foto">
+                                        <span class="badge-estatus-foto">
+                                            <i class="fas fa-check-circle"></i> {{ fotoFile?.name ? (fotoFile.name.length > 20 ? fotoFile.name.substring(0,20)+'...' : fotoFile.name) : 'Imagen Lista' }}
+                                        </span>
+                                        <button type="button" @click.stop="removeFoto" class="btn-borrar-foto-premium" :disabled="!visita?.es_primera_visita">
+                                            <i class="fas fa-times mr-1"></i> Eliminar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
                         <!-- NIVELES -->
                         <div class="form-group mb-6">
@@ -108,11 +149,19 @@
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div class="form-group">
-                                <label class="label-style">Teléfono *</label>
+                                <label class="label-style">Teléfono Principal*</label>
                                 <input v-model="form.plantel.telefono" @blur="validateUniqueness('telefono')" type="tel" class="form-input font-bold" :class="fieldValidation.telefono.error ? 'border-red-600 bg-red-50' : ''" :disabled="!visita.es_primera_visita" minlength="10" maxlength="10" required>
                                 <p v-if="fieldValidation.telefono.error" class="text-[9px] text-red-600 font-black mt-1 uppercase animate-pulse">
                                     <i class="fas fa-times-circle"></i> {{ fieldValidation.telefono.message }}
                                 </p>
+                            </div>
+                            <div class="form-group">
+                                <label class="label-style">Extensión *</label>
+                                <input v-model="form.plantel.extension" type="text" class="form-input font-bold" :disabled="!visita.es_primera_visita" maxlength="5" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="label-style">Teléfono de Oficina *</label>
+                                <input v-model="form.plantel.tel_oficina" type="text" class="form-input font-bold" :disabled="!visita.es_primera_visita" minlength="10" maxlength="10" required>
                             </div>
                             <div class="form-group">
                                 <label class="label-style">Correo Electrónico *</label>
@@ -215,7 +264,9 @@
                                         <thead class="bg-slate-900 text-white">
                                             <tr class="text-[9px] uppercase tracking-widest font-black">
                                                 <th class="px-4 py-3 text-left">Libro</th>
-                                                <th class="px-4 py-3 text-center w-36">Formato</th>
+                                                <th class="px-4 py-3 text-center w-32">Formato</th>
+                                                <th class="px-4 py-3 text-center w-36">Opción Comercial</th>
+                                                <th class="px-4 py-3 text-center w-28">Cantidad / Valor</th>
                                                 <th class="px-4 py-3 w-12"></th>
                                             </tr>
                                         </thead>
@@ -226,12 +277,20 @@
                                                     <div class="text-[9px] font-black text-slate-400 uppercase tracking-tighter mt-0.5">{{ item.serie_nombre }}</div>
                                                 </td>
                                                 <td class="table-cell text-center">
-                                                    <!-- REGLA: Si es digital, forzar y deshabilitar -->
                                                     <select v-model="item.tipo" class="select-table" :disabled="item.original_type === 'digital'">
                                                         <option value="fisico">FÍSICO</option>
                                                         <option value="digital">POR REVISAR</option>
                                                         <option value="paquete">PAQUETE</option>
                                                     </select>
+                                                </td>
+                                                <td class="table-cell text-center">
+                                                    <select v-model="item.beneficio_tipo" class="select-table" required>
+                                                        <option value="Precio especial">Precio especial</option>
+                                                        <option value="Descuento por libro">Descuento por libro</option>
+                                                    </select>
+                                                </td>
+                                                <td class="table-cell text-center">
+                                                    <input v-model.number="item.beneficio_valor" type="number" min="0" class="input-table text-center" required />
                                                 </td>
                                                 <td class="table-cell text-center">
                                                     <button type="button" @click="selectedInterestBooks.splice(idx, 1)" class="text-red-300 btn-secondary hover:text-red-600 transition-colors"><i class="fas fa-trash-alt"></i>Quitar</button>
@@ -301,10 +360,18 @@
                             </div>
                         </div>
                         <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
+                            <div class="section-title label-large text-black">
+                                <i class="fas fa-gift text-red-700"></i> 6. BENEFICIOS PARA EL CLIENTE
+                            </div>
+                            <div class="form-group mb-6">
+                                <textarea v-model="form.plantel.beneficios_adicionales" class="form-input font-medium uppercase text-xs lbb" rows="4" required minlength="20" placeholder="ESPECIFIQUE LOS BENEFICIOS ACORDADOS CON EL PLANTEL..."></textarea>
+                            </div>
+                        </div>
+                        <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
                           
                                 <!-- CAMPO DE PRÓXIMA ACCIÓN AGENDADA (NUEVO REQUISITO) -->
                             <div v-if="form.visita.resultado_visita === 'seguimiento'" class="form-group mb-6 p-6 bg-orange-50 rounded-[2.5rem] border-2 border-orange-100 shadow-inner animate-fade-in lbb">
-                               <label class="label-large">6. PROXIMO COMPROMISO</label>
+                               <label class="label-large">7. PROXIMO COMPROMISO</label>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lbb">
                                     <div>
                                         <label class="text-[8px] font-black text-orange-600 uppercase mb-1 block">Fecha estimada</label>
@@ -324,7 +391,7 @@
                         <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
                          
                              <div class="form-group p-6 bg-red-50 rounded-[2.5rem] border-2 border-red-100 shadow-inner lbb">
-                                 <label class="label-large">7. MOTIVO DE LA MODIFICACIÓN</label>
+                                 <label class="label-large">8. MOTIVO DE LA MODIFICACIÓN</label>
                                 <textarea v-model="form.motivo_cambio" class="form-input border-red-200 font-bold uppercase text-xs lbb" rows="3" placeholder="EXPLIQUE POR QUÉ SE EDITA ESTE REGISTRO..." required minlength="10"></textarea>
                             </div>
                         </div>
@@ -426,6 +493,9 @@ const interestSuggestions = ref([]);
 const deliveredSuggestions = ref([]);
 const selectedSerieIdA = ref('');
 
+const fotoFile = ref(null);
+const fotoPreview = ref(null);
+
 // 1. Catálogo de cargos para validación de "Otro"
 const cargosEstandar = [
     'Director/Coordinador', 
@@ -459,7 +529,21 @@ watch(isFormBlockedByDuplicates, (val) => {
 let bookTimer = null;
 
 const form = reactive({
-    plantel: { name: '', rfc: '', niveles: [], direccion: '', estado_id: '', telefono: '', email: '', director: '', latitud: null, longitud: null },
+    plantel: { 
+        name: '', 
+        rfc: '', 
+        niveles: [], 
+        direccion: '', 
+        estado_id: '', 
+        telefono: '', 
+        tel_oficina: '',
+        extension: '',
+        email: '', 
+        director: '', 
+        beneficios_adicionales: '',
+        latitud: null, 
+        longitud: null 
+    },
     visita: { 
         fecha: '', 
         persona_entrevistada: '', 
@@ -499,6 +583,15 @@ const fetchInitialData = async () => {
         form.plantel.direccion = (visita.value.direccion_plantel || visita.value.cliente?.direccion || '').toUpperCase();
         form.plantel.estado_id = visita.value.estado_id || visita.value.cliente?.estado_id || '';
         form.plantel.telefono = visita.value.telefono_plantel || visita.value.cliente?.telefono || '';
+        form.plantel.tel_oficina = visita.value.cliente?.tel_oficina || '';
+        form.plantel.extension = visita.value.cliente?.extension || '';
+        form.plantel.foto_plantel = visita.value.cliente?.foto_plantel || null;
+        if (visita.value?.cliente?.foto_plantel) {
+            fotoPreview.value = `/storage/${visita.value.cliente.foto_plantel}`;
+        } else {
+            fotoPreview.value = null;
+        }
+        form.plantel.beneficios_adicionales = visita.value.cliente?.beneficios_adicionales || '';
         form.plantel.email = (visita.value.email_plantel || visita.value.cliente?.email || '').toLowerCase();
         form.plantel.director = (visita.value.director_plantel || visita.value.cliente?.contacto || '').toUpperCase();
         form.plantel.latitud = visita.value.latitud;
@@ -600,7 +693,15 @@ const addMaterial = (book, type) => {
     const serieNombre = serie ? (serie.nombre || serie.serie) : 'Sin Serie';
     if (type === 'interest') {
         if (!selectedInterestBooks.value.find(b => b.id === book.id)) {
-            selectedInterestBooks.value.push({ id: book.id, titulo: book.titulo, serie_nombre: serieNombre, original_type: book.type, tipo: book.type === 'digital' ? 'digital' : 'fisico' });
+            selectedInterestBooks.value.push({ 
+                id: book.id, 
+                titulo: book.titulo, 
+                serie_nombre: serieNombre, 
+                original_type: book.type, 
+                tipo: book.type === 'digital' ? 'digital' : 'fisico',
+                beneficio_tipo: 'Precio especial',
+                beneficio_valor: 0
+            });
         }
         interestInput.titulo = ''; interestSuggestions.value = [];
     } else {
@@ -621,12 +722,51 @@ const getLocation = () => {
     );
 };
 
+const handleFotoUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 4 * 1024 * 1024) {
+        errorMessage.value = "LA IMAGEN EXPORTO UN PESO MAYOR AL LÍMITE PERMITIDO (4MB).";
+        return;
+    }
+    fotoFile.value = file;
+    fotoPreview.value = URL.createObjectURL(file);
+};
+
+const removeFoto = () => {
+    // 1. Limpieza visual inmediata en pantalla
+    fotoFile.value = null;
+    fotoPreview.value = null;
+    
+    // 2. Limpieza del formulario reactivo local
+    form.plantel.foto_plantel = null;
+    if (visita.value?.cliente) {
+        visita.value.cliente.foto_plantel = null;
+    }
+
+    // 3. LA CLAVE: Forzar a que el objeto del formulario lleve la bandera de eliminación para Laravel
+    form.foto_plantel_eliminar = 'true';
+};
+
 const handleSubmit = async () => {
     errorMessage.value = null;
     if (isFormBlockedByDuplicates.value) return;
 
     if (visita.value.es_primera_visita && selectedInterestBooks.value.length === 0) {
         errorMessage.value = "PARA REGISTRAR UNA APERTURA SE REQUIERE AL MENOS UN MATERIAL DE INTERÉS.";
+        return;
+    }
+
+    // Validar los campos de precio especial o descuento obligatorios en libros de interés antes de enviar
+    const camposIncompletos = selectedInterestBooks.value.some(libro => !libro.beneficio_tipo || libro.beneficio_valor === undefined || libro.beneficio_valor === '');
+    if (camposIncompletos) {
+        errorMessage.value = "POR FAVOR, ESPECIFIQUE EL TIPO DE BENEFICIO Y EL VALOR EN TODOS LOS LIBROS DE INTERÉS.";
+        return;
+    }
+
+    // Validar longitud mínima de Beneficios Adicionales
+    if (!form.plantel.beneficios_adicionales || form.plantel.beneficios_adicionales.trim().length < 20) {
+        errorMessage.value = "EL CAMPO DE 'BENEFICIOS ADICIONALES' ES OBLIGATORIO Y DEBE CONTENER AL MENOS 20 CARACTERES.";
         return;
     }
 
@@ -656,7 +796,24 @@ const handleSubmit = async () => {
                 entregado: selectedDeliveredBooks.value
             }
         };
-        await axios.put(`/visitas/${id}`, payload);
+
+        // Creamos un contenedor FormData para que viaje todo junto (Datos planos + Foto Binaria)
+        const formData = new FormData();
+        formData.append('_method', 'PUT'); // Truco nativo de Laravel para procesar PUT con archivos binarios
+        formData.append('data', JSON.stringify(payload)); // Empacamos todo tu formulario plano intacto
+
+        // Adjuntamos la fotografía o la bandera de eliminación según corresponda
+        if (fotoFile.value) {
+            formData.append('foto_plantel', fotoFile.value);
+        } else if (form.plantel.foto_plantel === null) {
+            formData.append('foto_plantel_eliminar', 'true');
+        }
+
+        // Realizamos el envío unificado al servidor
+        const response = await axios.post(`/visitas/${id}`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+
         showSuccess.value = true;
     } catch (e) {
         errorMessage.value = e.response?.data?.message || "Fallo técnico en la sincronización.";
@@ -718,5 +875,182 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
     font-weight: 800;
     text-transform: uppercase;
     cursor: pointer;
+}
+
+/* =======================================================
+   REGLAS CSS INDEPENDIENTES PARA LA SECCIÓN DE FOTOGRAFÍA
+   ======================================================= */
+.seccion-foto-modulo-premium {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 24px;
+  padding: 20px;
+  margin-top: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.contenedor-dropzone-foto {
+  position: relative;
+  border: 2px dashed #cbd5e1;
+  background-color: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.contenedor-dropzone-foto:hover {
+  border-color: #f87171;
+  background-color: #fffafb;
+}
+
+.input-nativo-oculto {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.visual-vacio-foto {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.circulo-icono-camara {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #fef2f2;
+  color: #ef4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.1);
+  transition: background-color 0.3s ease;
+}
+
+.contenedor-dropzone-foto:hover .circulo-icono-camara {
+  background-color: #fee2e2;
+}
+
+.textos-guia-drop {
+  text-align: center;
+}
+
+.txt-principal-upload {
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: #334155;
+  letter-spacing: 0.05em;
+}
+
+.txt-secundario-upload {
+  font-size: 9px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  margin-top: 4px;
+}
+
+.visual-preview-foto {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+  z-index: 20;
+}
+
+.caja-miniatura-preview {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 4px solid #ffffff;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.imagen-render-preview {
+  max-height: 160px;
+  object-fit: cover;
+}
+
+.capa-hover-cambio {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.caja-miniatura-preview:hover .capa-hover-cambio {
+  opacity: 1;
+}
+
+.txt-hover-cambio {
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.barra-acciones-foto {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.badge-estatus-foto {
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: #15803d;
+  background-color: #f0fdf4;
+  border: 1px solid #dcfce7;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  letter-spacing: 0.05em;
+}
+
+.btn-borrar-foto-premium {
+  background-color: #0f172a;
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.2s ease;
+}
+
+.btn-borrar-foto-premium:hover {
+  background-color: #dc2626;
 }
 </style>

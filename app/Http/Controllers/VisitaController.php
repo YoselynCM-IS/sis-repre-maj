@@ -343,6 +343,11 @@ class VisitaController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            if ($request->has('data')) {
+                $jsonData = json_decode($request->input('data'), true);
+                $request->merge($jsonData);
+            }
+            
             $user = $request->user();
             if (!$user) {
                 return response()->json(['message' => 'No autorizado.'], 401);
@@ -364,7 +369,13 @@ class VisitaController extends Controller
                 'resultado_visita'     => 'required|in:seguimiento,compra,rechazo',
                 'motivo_cambio'        => 'required|string|min:10',
                 'plantel'              => 'required|array',
-                'libros_interes'       => 'required|array'
+                'plantel.tel_oficina'  => 'required|string',
+                'plantel.extension'    => 'required|string',
+                'plantel.beneficios_adicionales' => 'required|string|min:20',
+                'libros_interes'       => 'required|array',
+                // NUEVAS REGLAS AGREGADAS PARA EL CONTENEDOR INTERNO DE LIBROS DE INTERÉS EN EDIT
+                'libros_interes.interes.*.beneficio_tipo'  => 'required|in:Precio especial,Descuento por libro',
+                'libros_interes.interes.*.beneficio_valor' => 'required|numeric|min:0',
             ]);
 
             return DB::transaction(function () use ($visita, $request) {
@@ -393,12 +404,37 @@ class VisitaController extends Controller
                     // Sincronización con el Cliente Maestro
                     if ($visita->cliente_id) {
                         $cliente = Cliente::where('id', $visita->cliente_id)->first();
+                        
+                        // ---> ADICIÓN ESPECÍFICA EN EL CONTROLADOR PARA PROCESAR LA FOTO <---
+                        $rutaFotoFinal = $cliente->foto_plantel;
+
+                        if ($request->hasFile('foto_plantel')) {
+                            // Si subió una foto nueva, borramos la física anterior
+                            if ($cliente->foto_plantel && \Storage::disk('public')->exists($cliente->foto_plantel)) {
+                                \Storage::disk('public')->delete($cliente->foto_plantel);
+                            }
+                            $file = $request->file('foto_plantel');
+                            $fileName = 'c_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                            $rutaFotoFinal = $file->storeAs('fotos_planteles', $fileName, 'public');
+                        } elseif ($request->input('foto_plantel_eliminar') === 'true') {
+                            // Si presionó eliminar, borramos el archivo del disco duro
+                            if ($cliente->foto_plantel && \Storage::disk('public')->exists($cliente->foto_plantel)) {
+                                \Storage::disk('public')->delete($cliente->foto_plantel);
+                            }
+                            $rutaFotoFinal = null;
+                        }
+                        // ---------------------------------------------------------------------
+
                         $cliente->update([
                             'tipo' => ($request->input('resultado_visita') === 'compra') ? 'CLIENTE' : 'PROSPECTO',
                             'name' => $visita->nombre_plantel,
                             'rfc' => $visita->rfc_plantel,
                             'contacto' => $visita->director_plantel,
                             'telefono' => $visita->telefono_plantel,
+                            'tel_oficina' => $plantel['tel_oficina'],
+                            'extension' => $plantel['extension'],
+                            'foto_plantel' => $rutaFotoFinal,
+                            'beneficios_adicionales' => strtoupper($plantel['beneficios_adicionales']),
                             'email' => $visita->email_plantel,
                             'direccion' => $visita->direccion_plantel,
                             'estado_id' => $request->input('plantel.estado_id'),
@@ -406,21 +442,21 @@ class VisitaController extends Controller
                         ]);
                     }
 
-                    // // MODIFICAR CLIENTE EN ME
-                    \DB::connection('mysql_inventario')->table('clientes')
-                        ->where('id', $cliente->referencia_id)->update([
-                            'tipo'            => ($request->input('resultado_visita') === 'compra') ? 'CLIENTE' : 'PROSPECTO',
-                            'name'            => $visita->nombre_plantel,
-                            'rfc'             => $visita->rfc_plantel,
-                            'contacto'        => $visita->director_plantel,
-                            'telefono'        => $visita->telefono_plantel,
-                            'email'           => $visita->email_plantel,
-                            'direccion'       => $visita->direccion_plantel, 
-                            'estado_id'       => $request->input('plantel.estado_id'),
-                            'status'          => ($request->input('resultado_visita') === 'rechazo') ? 'inactivo' : 'activo',
-                            'updated_at'      => Carbon::now()
-                        ]);
-                    // // FIN MODIFICAR CLIENTE ME
+                    // // // MODIFICAR CLIENTE EN ME
+                    // \DB::connection('mysql_inventario')->table('clientes')
+                    //      ->where('id', $cliente->referencia_id)->update([
+                    //          'tipo'            => ($request->input('resultado_visita') === 'compra') ? 'CLIENTE' : 'PROSPECTO',
+                    //          'name'            => $visita->nombre_plantel,
+                    //          'rfc'             => $visita->rfc_plantel,
+                    //          'contacto'        => $visita->director_plantel,
+                    //          'telefono'        => $visita->telefono_plantel,
+                    //          'email'           => $visita->email_plantel,
+                    //          'direccion'       => $visita->direccion_plantel, 
+                    //          'estado_id'       => $request->input('plantel.estado_id'),
+                    //          'status'          => ($request->input('resultado_visita') === 'rechazo') ? 'inactivo' : 'activo',
+                    //          'updated_at'      => Carbon::now()
+                    //      ]);
+                    // // // FIN MODIFICAR CLIENTE ME
                 }
 
                 // 3. Datos de la Intervención
