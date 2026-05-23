@@ -35,8 +35,10 @@
                 
                 <!-- 1. IDENTIDAD DEL PLANTEL -->
                 <div class="info-card shadow-premium border-t-8 border-t-red-700">
-                    <div class="section-title">
-                        <i class="fas fa-school text-red-700"></i> 1. Identidad y Ubicación del Plantel
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 border-b border-slate-100 pb-4">
+                        <div class="section-title !mb-0 !border-none !pb-0">
+                            <i class="fas fa-school text-red-700 mr-2"></i> 1. Identidad y Ubicación del Plantel
+                        </div>
                     </div>
                     
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-6">
@@ -128,6 +130,40 @@
                             <div class="data-row">
                                 <label class="label-large">Nombre del Director / Coordinador</label>
                                 <p class="value-text italic leading-relaxed text-sm">{{ visita.director_plantel || visita.cliente?.contacto || 'Sin director registrado' }}</p>
+                            </div>
+                            <div v-if="visita?.cliente?.tipo === 'CLIENTE' && visita.cliente?.cobranza" class="data-row mt-6 pt-6 border-t border-dashed border-slate-200 animate-fade-in">
+                                <label class="label-large !text-red-700 font-black tracking-widest text-[10px] mb-4 flex items-center gap-2 uppercase">
+                                    <i class="fas fa-hand-holding-usd"></i> Cobranza
+                                </label>
+                                <button 
+                                    v-if="visita?.cliente?.tipo === 'CLIENTE'" 
+                                    type="button"
+                                    @click="openCobranzaModal"
+                                    class="btn-secondary flex items-center gap-2 shrink-0 !border-slate-300 hover:bg-slate-50 transition-colors"
+                                >
+                                    <i class="fas" :class="visita.cliente?.cobranza ? 'fa-edit text-amber-600' : 'fa-plus-circle text-green-600'"></i>
+                                    {{ visita.cliente?.cobranza ? 'EDITAR INFORMACIÓN' : 'AÑADIR INFORMACIÓN' }}
+                                </button>
+                                <div class="info-card grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 pl-4">
+                                    <div>
+                                        <label class="label-large"><span class="text-slate-400">Método de pago:</span></label>
+                                        <p class="value-text uppercase text-xs font-black text-slate-800 leading-relaxed mt-0.5">{{ visita.cliente.cobranza.metodo_pago }}</p>
+                                    </div>
+                                    <template v-if="visita.cliente.cobranza.metodo_pago === 'Escuela'">
+                                        <div>
+                                            <label class="label-large"><span class="text-slate-400">Nombre del responsable:</span></label>
+                                            <p class="value-text uppercase text-xs font-bold text-slate-800 leading-relaxed mt-0.5">{{ visita.cliente.cobranza.responsable }}</p>
+                                        </div>
+                                        <div>
+                                            <label class="label-large"><span class="text-slate-400">Teléfono de contacto:</span></label>
+                                            <p class="value-text text-xs font-bold text-slate-800 leading-relaxed font-mono mt-0.5">{{ visita.cliente.cobranza.telefono }}</p>
+                                        </div>
+                                        <div>
+                                            <label class="label-large"><span class="text-slate-400">Correo electrónico:</span></label>
+                                            <p class="value-text text-xs font-bold text-slate-800 leading-relaxed mt-0.5 normal-case" style="text-transform: none !important;">{{ visita.cliente.cobranza.correo }}</p>
+                                        </div>
+                                    </template>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -427,6 +463,65 @@
                     </div>
                 </div>
             </div>
+
+            <div v-if="showCobranzaModal" class="custom-modal-backdrop">
+                <div class="custom-modal-window bg-white border-t-8 border-t-red-700 shadow-premium">
+                    
+                    <div class="custom-modal-content">
+                        
+                        <div class="flex justify-between items-center bg-white pb-4 mb-6 border-b border-slate-100">
+                            <div class="flex items-center gap-3">
+                                <div class="w-2 h-7 bg-red-700 rounded-full"></div>
+                                <h3 class="text-sm md:text-base font-black text-black uppercase tracking-wider m-0">
+                                    <i class="fas fa-handholding-usd text-red-700 mr-1"></i> Datos de Cobranza
+                                </h3>
+                            </div>
+                        </div>
+
+                        <form @submit.prevent="submitCobranza" class="space-y-6 m-0 bg-white">
+                            <div class="form-group">
+                                <label class="label-large mb-2 block">Método de Pago *</label>
+                                <select 
+                                    v-model="cobranzaForm.metodo_pago" 
+                                    required 
+                                    class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-black uppercase tracking-wider text-slate-700 focus:outline-none focus:border-red-600"
+                                >
+                                    <option value="Pago de CIE">Pago de CIE</option>
+                                    <option value="Venta directa">Venta directa</option>
+                                    <option value="Escuela">Escuela</option>
+                                </select>
+                            </div>
+
+                            <div v-if="cobranzaForm.metodo_pago === 'Escuela'" class="space-y-5 pt-5 border-t border-dashed border-slate-200 animate-fade-in">
+                                <div class="form-group">
+                                    <label class="label-large mb-2 block">Nombre del Responsable *</label>
+                                    <input type="text" v-model="cobranzaForm.responsable" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-bold uppercase text-slate-800 focus:outline-none focus:border-red-600"/>
+                                </div>
+                                <div class="form-group">
+                                    <label class="label-large mb-2 block">Teléfono de Contacto *</label>
+                                    <input type="text" v-model="cobranzaForm.telefono" required minlength="10" maxlength="10" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-bold font-mono text-slate-800 focus:outline-none focus:border-red-600"/>
+                                </div>
+                                <div class="form-group">
+                                    <label class="label-large mb-2 block">Correo Electrónico *</label>
+                                    <input type="email" v-model="cobranzaForm.correo" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-bold text-slate-800 focus:outline-none focus:border-red-600" style="text-transform: none !important;"/>
+                                </div>
+                            </div>
+
+                            <div class="custom-modal-buttons pt-5 border-t border-slate-100">
+                                <button type="button" @click="closeCobranzaModal" class="btn-secondary modal-btn text-xs font-black uppercase tracking-widest text-center">
+                                    Cancelar
+                                </button>
+                                <button type="submit" :disabled="savingCobranza" class="btn-primary-action modal-btn text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2">
+                                    <i v-if="savingCobranza" class="fas fa-circle-notch fa-spin"></i>
+                                    <i v-else class="fas fa-save"></i>
+                                    {{ savingCobranza ? 'GUARDANDO...' : 'GUARDAR' }}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
         </div>
     </div>
 </template>
@@ -444,6 +539,58 @@ const loading = ref(true);
 const loadingHistory = ref(true);
 const error = ref(null);
 const expandedId = ref(null);
+
+// ==========================================================================
+// ESTADO Y MÉTODOS DEL MODAL DE COBRANZA (NUEVO CONTROL MANTENIENDO TU MAQUETA)
+// ==========================================================================
+const showCobranzaModal = ref(false);
+const savingCobranza = ref(false);
+const cobranzaForm = ref({
+    metodo_pago: 'Pago de CIE',
+    responsable: '',
+    telefono: '',
+    correo: ''
+});
+
+const openCobranzaModal = () => {
+    if (visita.value?.cliente?.cobranza) {
+        // Precargar datos si ya existen registrados
+        cobranzaForm.value = {
+            metodo_pago: visita.value.cliente.cobranza.metodo_pago || 'Pago de CIE',
+            responsable: visita.value.cliente.cobranza.responsable || '',
+            telefono: visita.value.cliente.cobranza.telefono || '',
+            correo: visita.value.cliente.cobranza.correo || ''
+        };
+    } else {
+        // Resetear formulario
+        cobranzaForm.value = { metodo_pago: 'Pago de CIE', responsable: '', telefono: '', correo: '' };
+    }
+    showCobranzaModal.value = true;
+    document.body.style.overflow = 'hidden';
+};
+
+const closeCobranzaModal = () => {
+    showCobranzaModal.value = false;
+    document.body.style.overflow = 'auto';
+};
+
+const submitCobranza = async () => {
+    if (!visita.value?.cliente_id) return;
+    savingCobranza.value = true;
+    try {
+        const response = await axios.post(`/clientes/${visita.value.cliente_id}/cobranza`, cobranzaForm.value);
+        
+        // Inyectamos el objeto de cobranza actualizado al estado actual de la vista para renderizarlo inmediatamente
+        if (visita.value && visita.value.cliente) {
+            visita.value.cliente.cobranza = response.data.cobranza;
+        }
+        closeCobranzaModal();
+    } catch (err) {
+        alert(err.response?.data?.message || "Error al actualizar los datos de cobranza.");
+    } finally {
+        savingCobranza.value = false;
+    }
+};
 
 const fetchVisitaDetail = async () => {
     loading.value = true;
@@ -644,4 +791,109 @@ onMounted(fetchVisitaDetail);
 
 .animate-fade-in { animation: fadeIn 0.4s ease-out; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ==========================================================================
+   ESTILOS DE CAPA Y CORRECCIÓN DE AMPLIACIÓN PARA EL MODAL DE COBRANZA
+   ========================================================================== */
+.custom-modal-backdrop {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background-color: rgba(15, 23, 42, 0.4) !important;
+    backdrop-filter: blur(8px) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 99999 !important;
+    padding: 24px;
+}
+
+.custom-modal-window {
+    width: 100% !important;
+    max-width: 32rem !important;
+    border-radius: 2.5rem !important;
+    overflow: hidden !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15) !important;
+    animation: modalBounceIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+@keyframes modalBounceIn {
+    from { opacity: 0; transform: scale(0.93) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@media (max-width: 640px) {
+    .custom-modal-backdrop { padding: 12px; }
+    .custom-modal-window { border-radius: 2rem !important; }
+}
+
+/* ==========================================================================
+   ESTILOS DE CAPA, CONTENEDOR SÓLIDO BLANCO Y PADDINGS DEL MODAL
+   ========================================================================== */
+.custom-modal-backdrop {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background-color: rgba(15, 23, 42, 0.4) !important;
+    backdrop-filter: blur(8px) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 99999 !important;
+    padding: 24px !important;
+}
+
+.custom-modal-window {
+    width: 100% !important;
+    max-width: 32rem !important;
+    background-color: #ffffff !important;
+    border-radius: 2.5rem !important;
+    overflow: hidden !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+    box-sizing: border-box !important;
+    animation: modalBounceIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+/* Espaciado interno simétrico hacia las cuatro orillas */
+.custom-modal-content {
+    padding-top: 2rem !important;
+    padding-bottom: 2rem !important;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+    box-sizing: border-box !important;
+}
+
+/* Forzar la alineación de botones uno al lado del otro */
+.custom-modal-buttons {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 16px !important;
+    width: 100% !important;
+}
+
+.modal-btn {
+    flex: 1 !important;
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+}
+
+@keyframes modalBounceIn {
+    from { opacity: 0; transform: scale(0.93) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@media (max-width: 640px) {
+    .custom-modal-backdrop { padding: 16px !important; }
+    .custom-modal-window { border-radius: 2rem !important; }
+    .custom-modal-content { padding: 1.25rem !important; }
+    .custom-modal-buttons { gap: 10px !important; }
+}
 </style>

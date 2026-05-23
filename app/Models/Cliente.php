@@ -96,4 +96,9 @@ class Cliente extends Model
             }
         );
     }
+
+    public function cobranza()
+    {
+        return $this->hasOne(Cobranza::class, 'cliente_id');
+    }
 }
