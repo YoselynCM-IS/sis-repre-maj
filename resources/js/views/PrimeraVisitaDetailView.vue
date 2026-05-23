@@ -74,6 +74,12 @@
                                 <p v-else class="value-text text-slate-300 italic text-sm">Sin coordenadas registradas</p>
                             </div>
 
+                                <div v-if="visita.cliente?.foto_plantel" class="data-row">
+                                    <label class="label-large">Fotografía del Plantel</label>
+                                    <div class="caja-miniatura-preview max-w-xs overflow-hidden rounded-2xl border-4 border-white shadow-md mt-2">
+                                        <img :src="`/storage/${visita.cliente.foto_plantel}`" alt="Foto Plantel" class="w-full object-cover rounded-xl max-h-48" />
+                                    </div>
+                                </div>
                                 <div class="data-row">
                                     <label class="label-large">Niveles Educativos</label>
                                     <div class="flex flex-wrap gap-1.5 mt-1">
@@ -101,8 +107,16 @@
                         <!-- Columna Contacto -->
                         <div class="space-y-6">
                             <div class="data-row">
-                                <label class="label-large">Teléfono</label>
+                                <label class="label-large">Teléfono Principal</label>
                                 <p class="value-text tracking-tighter"><i class="fas fa-phone-alt mr-2 opacity-30"></i>{{ visita.telefono_plantel || visita.cliente?.telefono || 'N/A' }}</p>
+                            </div>
+                            <div class="data-row mt-6">
+                                <label class="label-large">Extensión</label>
+                                <p class="value-text tracking-tighter"><i class="fas fa-phone-volume mr-2 opacity-30"></i>{{ visita.cliente?.extension || 'N/A' }}</p>
+                            </div>
+                            <div class="data-row mt-6">
+                                <label class="label-large">Teléfono Oficina</label>
+                                <p class="value-text tracking-tighter"><i class="fas fa-phone mr-2 opacity-30"></i>{{ visita.cliente?.tel_oficina || 'N/A' }}</p>
                             </div>
                           <div class="data-row">
                                     <label class="label-large">Correo Electrónico</label>
@@ -119,12 +133,27 @@
                     </div>
                 </div>
 
+                <!-- BENEFICIOS POR CLIENTE -->
+                <div class="info-card space-y-6 mt-16">
+                    <div class="flex items-center gap-3 px-2">
+                        <div class="w-2 h-8 bg-red-700 rounded-full"></div>
+                        <div class="section-title text-black !border-black/5">
+                            <i class="fas fa-gift text-black"></i> 2. Beneficios para el Cliente
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="bg-amber-50 p-8 rounded-3xl border border-amber-100 italic text-slate-700 text-sm leading-relaxed font-medium shadow-inner uppercase">
+                            "{{ visita.cliente?.beneficios_adicionales || 'Sin beneficios adicionales registrados para este cliente.' }}"
+                        </div>
+                    </div>
+                </div>
+
                 <!-- 2. HISTORIAL CRONOLÓGICO -->
                 <div class="info-card space-y-6 mt-16">
                     <div class="flex items-center gap-3 px-2">
                         <div class="w-2 h-8 bg-red-700 rounded-full"></div>
                         <div class="section-title text-black !border-black/5">
-                            <i class="fas fa-handshake text-black"></i> 2. Historial de Visitas
+                            <i class="fas fa-handshake text-black"></i> 3. Historial de Visitas
                         </div>
                     </div>
 
@@ -192,78 +221,88 @@
                                     
                                     <!-- SECCIÓN DE MATERIALES: VISIBILIDAD CONDICIONAL -->
                                     <div v-if="parseMateriales(h.libros_interes).interes.length || parseMateriales(h.libros_interes).entregado.length">
-                                        
-                                        
                                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                                         <div class="space-y-8 animate-fade-in">
-    <!-- TABLA A: INTERÉS (Solo si tiene datos) -->
-    <div v-if="parseMateriales(h.libros_interes).interes.length" class="table-container">
-        <h5 class="text-black font-black label-large uppercase text-[11px] tracking-[0.2em] mb-6 flex items-center gap-2">
-            <i class="fas fa-book-open text-red-700"></i> Libros de interés
-        </h5>
-        <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
-            <table class="min-width-full divide-y divide-gray-200 responsive-table">
-                <thead class="bg-gray-100 hidden md:table-header-group">
-                    <tr>
-                        <th class="table-header">Libros</th>
-                        <th class="table-header text-right w-40">Formato</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white bk divide-y divide-gray-100 block md:table-row-group">
-                    <tr v-for="(item, i) in parseMateriales(h.libros_interes).interes" :key="i" 
-                        class="hover:bg-gray-50 transition-colors block md:table-row relative p-4 md:p-0 border-b md:border-none">
-                        
-                        <td class="table-cell block md:table-cell" data-label="LIBROS">
-                            <div class="text-sm font-bold text-gray-800 uppercase leading-tight">
-                                {{ item.titulo }}
-                            </div>
-                        </td>
-                        
-                        <td class="table-cell text-left md:text-right block md:table-cell" data-label="FORMATO">
-                            <span class="status-badge bg-blue-50 text-blue-700 border border-blue-100">
-                                {{ (item.tipo || 'Físico').toUpperCase() }}
-                            </span>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
+                                            <div class="space-y-8 animate-fade-in">
+                                                <div v-if="parseMateriales(h.libros_interes).interes.length" class="table-container">
+                                                    <h5 class="text-black font-black label-large uppercase text-[11px] tracking-[0.2em] mb-6 flex items-center gap-2">
+                                                        <i class="fas fa-book-open text-red-700"></i> Libros de interés
+                                                    </h5>
+                                                    <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
+                                                        <table class="min-width-full divide-y divide-gray-200 responsive-table">
+                                                            <thead class="bg-gray-100 hidden md:table-header-group">
+                                                                <tr>
+                                                                    <th class="table-header">Libros</th>
+                                                                    <th class="table-header text-center w-28">Formato</th>
+                                                                    <th class="table-header text-center w-40">Opción Comercial</th>
+                                                                    <th class="table-header text-right w-32">Cantidad / Valor</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody class="bg-white bk divide-y divide-gray-100 block md:table-row-group">
+                                                                <tr v-for="(item, i) in parseMateriales(h.libros_interes).interes" :key="i" 
+                                                                    class="hover:bg-gray-50 transition-colors block md:table-row relative p-4 md:p-0 border-b md:border-none">
+                                                                    
+                                                                    <td class="table-cell block md:table-cell" data-label="LIBROS">
+                                                                        <div class="text-sm font-bold text-gray-800 uppercase leading-tight">
+                                                                            {{ item.titulo }}
+                                                                        </div>
+                                                                    </td>
+                                                                    
+                                                                    <td class="table-cell text-left md:text-center block md:table-cell" data-label="FORMATO">
+                                                                        <span class="status-badge bg-blue-50 text-blue-700 border border-blue-100">
+                                                                            {{ (item.tipo || 'Físico').toUpperCase() }}
+                                                                        </span>
+                                                                    </td>
 
-    <!-- TABLA B: MUESTRAS (Solo si tiene datos) -->
-    <div v-if="parseMateriales(h.libros_interes).entregado.length" class="table-container">
-        <h5 class="text-black font-black label-large uppercase text-[11px] tracking-[0.2em] mb-6 flex items-center gap-2">
-            <i class="fas fa-box-open text-red-700"></i> Muestras de promoción entregadas
-        </h5>
-        <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white border-red-100">
-            <table class="min-width-full divide-y divide-gray-200 responsive-table">
-                <thead class="bg-red-50 hidden md:table-header-group">
-                    <tr>
-                        <th class="table-header !text-red-800">Libro</th>
-                        <th class="table-header text-right w-32 !text-red-800">Cantidad</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white bk divide-y divide-red-50 block md:table-row-group">
-                    <tr v-for="(item, i) in parseMateriales(h.libros_interes).entregado" :key="i" 
-                        class="hover:bg-red-50/30 transition-colors block md:table-row relative p-4 md:p-0 border-b md:border-none">
-                        
-                        <td class="table-cell block md:table-cell" data-label="LIBRO">
-                            <div class="text-sm font-bold text-red-900 uppercase leading-tight">
-                                {{ item.titulo }}
-                            </div>
-                        </td>
-                        
-                        <td class="table-cell text-left md:text-right block md:table-cell" data-label="CANTIDAD">
-                            <span class="text-sm font-black text-red-600 bg-red-100 px-3 py-1 rounded-lg border border-red-200">
-                                {{ item.cantidad }}
-                            </span>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
+                                                                    <td class="table-cell text-left md:text-center block md:table-cell" data-label="OPCIÓN COMERCIAL">
+                                                                        <span class="text-xs font-bold text-gray-700 uppercase">
+                                                                            {{ item.beneficio_tipo || 'N/A' }}
+                                                                        </span>
+                                                                    </td>
+
+                                                                    <td class="table-cell text-left md:text-right block md:table-cell" data-label="CANTIDAD / VALOR">
+                                                                        <span class="text-sm font-black text-gray-900">
+                                                                            {{ item.beneficio_tipo === 'Descuento por libro' ? (item.beneficio_valor + '%') : (item.beneficio_valor ? ('$' + item.beneficio_valor) : 'N/A') }}
+                                                                        </span>
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+
+                                                <div v-if="parseMateriales(h.libros_interes).entregado.length" class="table-container">
+                                                    <h5 class="text-black font-black label-large uppercase text-[11px] tracking-[0.2em] mb-6 flex items-center gap-2">
+                                                        <i class="fas fa-box-open text-red-700"></i> Muestras de promoción entregadas
+                                                    </h5>
+                                                    <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white border-red-100">
+                                                        <table class="min-width-full divide-y divide-gray-200 responsive-table">
+                                                            <thead class="bg-red-50 hidden md:table-header-group">
+                                                                <tr>
+                                                                    <th class="table-header !text-red-800">Libro</th>
+                                                                    <th class="table-header text-right w-32 !text-red-800">Cantidad</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody class="bg-white bk divide-y divide-red-50 block md:table-row-group">
+                                                                <tr v-for="(item, i) in parseMateriales(h.libros_interes).entregado" :key="i" 
+                                                                    class="hover:bg-red-50/30 transition-colors block md:table-row relative p-4 md:p-0 border-b md:border-none">
+                                                                    
+                                                                    <td class="table-cell block md:table-cell" data-label="LIBRO">
+                                                                        <div class="text-sm font-bold text-red-900 uppercase leading-tight">
+                                                                            {{ item.titulo }}
+                                                                        </div>
+                                                                    </td>
+                                                                    
+                                                                    <td class="table-cell text-left md:text-right block md:table-cell" data-label="CANTIDAD">
+                                                                        <span class="text-sm font-black text-red-600 bg-red-100 px-3 py-1 rounded-lg border border-red-200">
+                                                                            {{ item.cantidad }}
+                                                                        </span>
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -276,8 +315,6 @@
                                             "{{ h.comentarios || 'El representante no dejó observaciones escritas en esta sesión.' }}"
                                         </div>
                                     </div>
-
-                                    
                                 </div>
                             </div>
                             <br><br>
@@ -296,7 +333,7 @@
                 <div v-if="ultimoResultado === 'seguimiento'" class="info-card border-none bg-slate-100 p-10 rounded-[3rem] border border-slate-200 shadow-sm mt-8 text-center animate-fade-in">
                     <div class="flex flex-col items-center gap-6">
                         <div class="section-title text-black !border-black/5 !mb-0">
-                            <i class="fas fa-calendar-alt text-black"></i> 3. Próximo Compromiso 
+                            <i class="fas fa-calendar-alt text-black"></i> 4. Próximo Compromiso 
                         </div>
                         
                         <div v-if="proximoCompromisoFinal" class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-200 w-full max-w-lg mx-auto">
@@ -322,7 +359,7 @@
                 <div v-if="allLogs.length > 0" class="info-card shadow-premium border-t-8 border-t-slate-800 bg-white p-0 rounded-[2.5rem] border border-slate-100 overflow-hidden mt-16">
                     <div class="p-8 border-b border-slate-50 flex items-center justify-between bg-white">
                         <div class="section-title text-black !border-black/5">
-                            <i class="fas fa-handshake text-black"></i> 4. Modificaciones
+                            <i class="fas fa-handshake text-black"></i> 5. Modificaciones
                         </div>
                     </div>
 

@@ -90,10 +90,7 @@
                         </div>
 
                         <div class="seccion-foto-modulo-premium">
-                            <label class="label-style flex items-center gap-2">
-                                <i class="fas fa-camera text-red-600 text-xs"></i> Fotografía del Plantel 
-                                <span class="text-[9px] font-medium text-slate-400 lowercase italic">(Opcional)</span>
-                            </label>
+                            <label style="font-size: 14px;"><strong>Fotografía del Plantel (Opcional)</strong></label>
                             
                             <div class="contenedor-dropzone-foto">
                                 <input 
@@ -165,7 +162,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div class="grid grid-cols-3 gap-3">
                                 <div class="form-group col-span-2 relative">
-                                    <label class="label-style">Teléfono 1 *</label>
+                                    <label class="label-style">Teléfono principal *</label>
                                     <div class="relative">
                                         <input 
                                             v-model="form.plantel.telefono" 
@@ -457,9 +454,16 @@
                                     <option value="rechazo">NO INTERESADO </option>
                                 </select>
                             </div>
-
+                            
+                            <div class="form-group">
+                                <label class="label-style">COMENTARIOS Y ACUERDOS DE LA SESIÓN</label>
+                                <textarea v-model="form.visita.comentarios" class="form-input font-medium" rows="4" placeholder="Resumen detallado de la entrevista (Mínimo 20 caracteres)..." required minlength="20" :disabled="loading"></textarea>
+                            </div>
+                        </div>
+                        <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
+                            <label class="label-mini mb-4 text-red-800 label-large font-black tracking-tighter"><i class="fas fa-box-open mr-1"></i> 6. BENEFICIOS PARA EL CLIENTE</label>
+                            
                             <div class="form-group mb-6">
-                                <label class="label-style">BENEFICIOS ADICIONALES *</label>
                                 <textarea 
                                     v-model="form.plantel.beneficios_adicionales" 
                                     class="form-input font-medium" 
@@ -470,15 +474,10 @@
                                     :disabled="loading"
                                 ></textarea>
                             </div>
-                            
-                            <div class="form-group">
-                                <label class="label-style">COMENTARIOS Y ACUERDOS DE LA SESIÓN</label>
-                                <textarea v-model="form.visita.comentarios" class="form-input font-medium" rows="4" placeholder="Resumen detallado de la entrevista (Mínimo 20 caracteres)..." required minlength="20" :disabled="loading"></textarea>
-                            </div>
                         </div>
                         <div v-if="form.visita.resultado_visita === 'seguimiento'" class="form-group mb-6 p-6 bg-orange-50 rounded-[2.5rem] border-2 border-orange-100 animate-fade-in shadow-inner">
                             <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
-                                <label class="label-mini mb-4 text-red-800 label-large font-black tracking-tighter"><i class="fas fa-box-open mr-1"></i> 6. PROXIMO COMPROMISO</label>
+                                <label class="label-mini mb-4 text-red-800 label-large font-black tracking-tighter"><i class="fas fa-box-open mr-1"></i> 7. PROXIMO COMPROMISO</label>
                            
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
@@ -847,18 +846,18 @@ const handleSubmit = async () => {
         
         // CORRECCIÓN AQUÍ: Se mapean uno a uno de vuelta a un array iterable para que Laravel lo acepte como array normal.
         selectedInterestBooks.value.forEach((libro, index) => {
-            formData.append(`visita[libros_interes][${index}][id]`, libro.id);
-            formData.append(`visita[libros_interes][${index}][titulo]`, libro.titulo);
-            formData.append(`visita[libros_interes][${index}][serie_nombre]`, libro.serie_nombre);
-            formData.append(`visita[libros_interes][${index}][tipo]`, libro.tipo);
-            formData.append(`visita[libros_interes][${index}][beneficio_tipo]`, libro.beneficio_tipo);
-            formData.append(`visita[libros_interes][${index}][beneficio_valor]`, libro.beneficio_valor);
+            formData.append(`visita[libros_interes][interes][${index}][id]`, libro.id);
+            formData.append(`visita[libros_interes][interes][${index}][titulo]`, libro.titulo);
+            formData.append(`visita[libros_interes][interes][${index}][serie_nombre]`, libro.serie_nombre);
+            formData.append(`visita[libros_interes][interes][${index}][tipo]`, libro.tipo);
+            formData.append(`visita[libros_interes][interes][${index}][beneficio_tipo]`, libro.beneficio_tipo);
+            formData.append(`visita[libros_interes][interes][${index}][beneficio_valor]`, libro.beneficio_valor);
         });
 
         selectedDeliveredBooks.value.forEach((libro, index) => {
-            formData.append(`visita[muestras_entregadas][${index}][id]`, libro.id);
-            formData.append(`visita[muestras_entregadas][${index}][titulo]`, libro.titulo);
-            formData.append(`visita[muestras_entregadas][${index}][cantidad]`, libro.cantidad);
+            formData.append(`visita[libros_interes][entregado][${index}][id]`, libro.id);
+            formData.append(`visita[libros_interes][entregado][${index}][titulo]`, libro.titulo);
+            formData.append(`visita[libros_interes][entregado][${index}][cantidad]`, libro.cantidad);
         });
 
         // ÚNICA ADICIÓN: La foto si existe
