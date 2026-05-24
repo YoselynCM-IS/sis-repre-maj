@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\NuevaVisitaRegistrada;
 
 class VisitaController extends Controller
 {
@@ -237,6 +239,32 @@ class VisitaController extends Controller
                     'proxima_accion'          => $request->input('visita.proxima_accion') ?? 'visita',
                     'es_primera_visita'       => true,
                 ]);
+
+                // ENVÍO DE CORREO AL CLIENTE (SE EJECUTA ANTES DE RESPONDER AL FRONTEND)
+                try {
+                    if (!empty($email)) {
+                        // Obtener los IDs de los libros de interés contenidos en el array interno enviado por el request
+                        $librosInteresData = $request->input('visita.libros_interes.interes', []);
+                        $libroIds = collect($librosInteresData)->pluck('id')->filter()->toArray();
+
+                        // Consultar la tabla de libros para extraer los que tienen un link_flipbook registrado
+                        $librosConLink = [];
+                        if (!empty($libroIds)) {
+                            $librosConLink = \DB::table('libros')
+                                ->whereIn('id', $libroIds)
+                                ->whereNotNull('link_flipbook')
+                                ->where('link_flipbook', '!=', '')
+                                ->select('id', 'titulo', 'link_flipbook') // Ajusta 'titulo' si tu columna de nombre se llama diferente
+                                ->get();
+                        }
+
+                        // Enviar el correo inyectando la visita y la colección de libros encontrados
+                        Mail::to($email)->send(new NuevaVisitaRegistrada($visita, $librosConLink));
+                    }
+                } catch (\Exception $mailEx) {
+                    // Se registra el fallo en logs para evitar que un problema de correo cancele la transacción de la BD
+                    Log::error("No se pudo enviar el correo de visita registrada a {$email}: " . $mailEx->getMessage());
+                }
 
                 return response()->json(['message' => "Registro exitoso.", 'visita_id' => $visita->id], 201);
             });
