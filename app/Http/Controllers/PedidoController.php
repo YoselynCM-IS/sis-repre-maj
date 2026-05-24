@@ -12,6 +12,7 @@ use App\Models\PedidoReceptor;
 use App\Models\Libro;
 use App\Models\PedidoLog;
 use App\Models\CodigoPostal;
+use App\Models\Delegate;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
@@ -115,7 +116,19 @@ class PedidoController extends Controller
             // $user = $request->user();
             // $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
             if(auth()->user()->role == 'representante'){
-                $pedidos = Pedido::with(['cliente', 'detalles.libro', 'user']) 
+                $user = auth()->user();
+
+                // 1. Obtener los IDs de los usuarios promotores asignados a este representante
+                $promotoresIds = Delegate::where('representative_id', $user->id)
+                                    ->pluck('user_id')
+                                    ->toArray();
+
+                // 2. Incluir el ID del propio representante en la lista de búsqueda
+                $userIdsPermitidos = array_merge([$user->id], $promotoresIds);
+
+                // 3. Filtrar los pedidos que pertenezcan al representante o a sus promotores
+                $pedidos = Pedido::whereIn('user_id', $userIdsPermitidos)
+                            ->with(['cliente', 'detalles.libro', 'user']) 
                             ->orderBy('created_at', 'desc')
                             ->paginate(15);
             } else {
