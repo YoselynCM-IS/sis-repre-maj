@@ -277,9 +277,10 @@
                 <div class="info-card shadow-premium border-l-8 border-l-slate-800 bg-white p-6 rounded-3xl overflow-hidden border border-slate-100">
                     
                     <div class="section-title !mb-0 border-none">
-                            <i class="fas fa-history text-red-700"></i> 6. Expediente Digital y Documentos
-                        </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <i class="fas fa-history text-red-700"></i> 6. Expediente Digital y Documentos
+                    </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                         <div class="flex items-center justify-between p-5 rounded-2xl border-2 transition-all" 
                              :class="pedido.factura_path ? 'border-red-50 bg-red-50/20' : 'border-slate-50 bg-slate-50/30 opacity-60'">
                             <div class="flex items-center gap-3 min-w-0">
@@ -293,7 +294,90 @@
                             </div>
                             <a v-if="pedido.factura_path" :href="pedido.factura_url" target="_blank" class="btn-icon-action bg-red-600 shrink-0 shadow-lg shadow-red-100 hover:scale-110 transition-transform border-none cursor-pointer"><i class="fas fa-download"></i></a>
                         </div>
+
+                        <div class="flex items-center justify-between p-5 rounded-2xl border-2 transition-all bg-slate-50/30 border-slate-100 shadow-sm">
+                            <div class="flex items-center gap-3 min-w-0 w-full justify-between">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest label-large mb-5">Guía de Envío</p>
+                                <div v-if="user && user.role === 'representante'">
+                                    <div>
+                                        <input 
+                                            type="file" 
+                                            id="guia-document-file-input" 
+                                            @change="handleFileChange" 
+                                            accept="image/jpeg,image/png,application/pdf" 
+                                            style="display: none !important;"
+                                            :disabled="uploadLoading"
+                                        />
+
+                                        <label v-if="!selectedFiles || selectedFiles.length === 0" 
+                                            for="guia-document-file-input" 
+                                            class="btn-primary px-4 py-2 text-center text-xs font-black uppercase tracking-widest cursor-pointer select-none inline-flex items-center justify-center">
+                                            Adjuntar Guía
+                                        </label>
+
+                                        <button v-else 
+                                                @click="uploadGuia" 
+                                                :disabled="uploadLoading"
+                                                class="btn-primary px-4 py-2 text-xs font-black uppercase tracking-widest cursor-pointer inline-flex items-center justify-center border-none">
+                                            <i v-if="uploadLoading" class="fas fa-spinner fa-spin mr-1"></i>
+                                            {{ uploadLoading ? '...' : 'Subir' }}
+                                        </button>
+                                    </div>
+                                    <div class="flex items-center gap-3 min-w-0">
+                                        <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-white shadow-sm shrink-0">
+                                            <i class="fas text-xl" :class="uploadLoading ? 'fa-spinner fa-spin text-red-600' : 'fa-truck text-slate-300'"></i>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <p class="text-xs font-bold value-text text-slate-700 truncate uppercase max-w-[110px] sm:max-w-[145px]">
+                                                {{ selectedFiles && selectedFiles.length > 0 ? selectedFiles[0].name : '' }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+
+                    <div v-if="pedido.guias && pedido.guias.length > 0" class="table-container mt-4 p-0">
+                        <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
+                            <table class="min-width-full divide-y divide-gray-200 responsive-table">
+                                <thead class="bg-gray-100 hidden md:table-header-group">
+                                    <tr>
+                                        <th class="table-header">Documento</th>
+                                        <th class="table-header text-center w-32">Formato</th>
+                                        <th class="table-header text-center w-32">Peso</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody class="bg-white divide-y divide-gray-100 block md:table-row-group">
+                                    <tr v-for="guia in pedido.guias" :key="guia.id" 
+                                        class="hover:bg-gray-50 transition-colors block md:table-row relative p-5 md:p-0 border-b md:border-none">
+                                        
+                                        <td class="table-cell block md:table-cell" data-label="DOCUMENTO">
+                                            <a :href="getViewableUrl(guia.public_url)" 
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                class="btn-note !bg-white hover:!border-red-600 hover:!text-red-600 flex items-center gap-2 w-full justify-center md:justify-start">
+                                                    VER GUÍA
+                                            </a>
+                                        </td>
+
+                                        <td class="table-cell text-left md:text-center block md:table-cell" data-label="FORMATO">
+                                            <span :class="guia.extension === 'pdf' ? 'bg-red-50 text-red-700 border-red-100' : 'bg-blue-50 text-blue-700 border-blue-100'" 
+                                                  class="status-badge border">
+                                                {{ (guia.extension || 'N/A').toUpperCase() }}
+                                            </span>
+                                        </td>
+
+                                        <td class="table-cell text-left md:text-center font-bold text-slate-500 text-xs block md:table-cell" data-label="PESO">
+                                            {{ guia.size }} KB
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                 </div>
             
 
@@ -389,13 +473,60 @@ const id = route.params.id;
 const pedido = ref(null);
 const loading = ref(false);
 const error = ref(null);
+const user = ref(null)
+
+// ── GESTIÓN DE GUÍAS EN EXPEDIENTE DIGITAL ──
+const uploadLoading = ref(false)
+const selectedFiles = ref([])
+
+// Función que maneja la selección del archivo
+const handleFileChange = (event) => {
+  selectedFiles.value = Array.from(event.target.files)
+}
+
+// Función que envía los archivos al endpoint de Laravel
+const uploadGuia = async () => {
+  if (selectedFiles.value.length === 0) return
+
+  uploadLoading.value = true
+  const formData = new FormData()
+  formData.append('pedido_id', pedido.value.id)
+  
+  selectedFiles.value.forEach((file) => {
+    formData.append('files[]', file)
+  })
+
+  try {
+    const response = await axios.post('pedidos/store-guia', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+    
+    // Si tu consulta inicial mapea las guías en el objeto pedido, las inyectamos dinámicamente
+    if (!pedido.value.guias) pedido.value.guias = []
+    pedido.value.guias.push(...response.data.guias)
+    
+    selectedFiles.value = []
+    // Si manejas una función de alerta o toast en esta vista, la puedes disparar aquí
+    alert('Archivo cargado exitosamente.')
+  } catch (error) {
+    alert(error.response?.data?.message || 'Error al subir el documento a Dropbox.')
+  } finally {
+    uploadLoading.value = false
+  }
+}
+
+const getViewableUrl = (url) => {
+    if (!url) return '#';
+    return url.replace('dl=1', 'dl=0');
+};
 
 const fetchPedidoDetail = async () => {
     loading.value = true;
     error.value = null;
     try {
         const response = await axios.get(`/pedidos/${id}`);
-        pedido.value = response.data;
+        pedido.value = response.data.pedido
+        user.value = response.data.user
     } catch (err) {
         error.value = err.response?.data?.message || 'No se pudieron cargar los detalles técnicos del pedido.';
     } finally {

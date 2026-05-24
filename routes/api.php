@@ -33,7 +33,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/pedidos', [PedidoController::class, 'store']);
     Route::get('/pedidos/{id}', [PedidoController::class, 'show']); 
     Route::get('/proxy/dipomex', [PedidoController::class, 'proxyDipomex']);
-    Route::put('/pedidos/{id}', [PedidoController::class, 'update']); 
+    Route::put('/pedidos/{id}', [PedidoController::class, 'update']);
+    Route::post('pedidos/store-guia', [PedidoController::class, 'storeGuia']); 
 
     // Gastos
     Route::get('/gastos', [GastoController::class, 'index']); 

@@ -142,4 +142,9 @@ class Pedido extends Model
     {
         return $this->hasMany(PedidoLog::class, 'pedido_id');
     }
+
+    public function guias()
+    {
+        return $this->hasMany(Guia::class, 'pedido_id');
+    }
 }

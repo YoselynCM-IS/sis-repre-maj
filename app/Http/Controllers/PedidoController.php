@@ -13,10 +13,12 @@ use App\Models\Libro;
 use App\Models\PedidoLog;
 use App\Models\CodigoPostal;
 use App\Models\Delegate;
+use App\Models\Guia;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use Spatie\Dropbox\Client as DropboxClient;
 
 class PedidoController extends Controller
 {
@@ -154,12 +156,15 @@ class PedidoController extends Controller
             $user = $request->user();
             $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
 
-            $pedido = Pedido::with(['cliente', 'detalles.libro', 'receptor', 'logs.user']) 
+            $pedido = Pedido::with(['cliente', 'detalles.libro', 'receptor', 'logs.user', 'guias']) 
                         ->where('id', $id)
-                        ->where('user_id', $ownerId)
+                        // ->where('user_id', $ownerId)
                         ->firstOrFail();
                         
-            return response()->json($pedido);
+           return response()->json([
+                'pedido' => $pedido,
+                'user'   => $user
+            ]);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json(['message' => 'Pedido no localizado.'], 404);
         } catch (\Exception $e) {
@@ -625,5 +630,111 @@ class PedidoController extends Controller
         $path = $request->file('factura')->store('facturas/pedidos', 'public');
         $pedido->update(['factura_path' => $path]);
         return response()->json(['message' => 'Factura adjuntada con éxito', 'url' => $pedido->factura_url]);
+    }
+
+    /**
+     * Almacena de forma segura la guía de un pedido en Dropbox y en la tabla guias.
+     * EXCLUSIVO: Solo usuarios con rol 'representante' pueden usar esta función.
+     */
+    public function storeGuia(Request $request)
+    {
+        // ── REGLA DE SEGURIDAD ABSOLUTA: Solo representantes asignan guías ──
+        if ($request->user()->role !== 'representante') {
+            return response()->json(['message' => 'No autorizado. Solo el representante puede subir guías de pedidos.'], 403);
+        }
+
+        $request->validate([
+            'pedido_id' => 'required|exists:pedidos,id',
+            'files'     => 'required|array',
+            'files.*'   => 'file|mimes:jpg,jpeg,png,pdf|max:3072',
+        ]);
+        
+        $pedido = Pedido::findOrFail($request->pedido_id);
+        $user = $request->user();
+        $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
+
+        // Validamos que el pedido le pertenezca a él o a sus promotores
+        $promotoresIds = Delegate::where('representative_id', $ownerId)->pluck('user_id')->toArray();
+        $userIdsPermitidos = array_merge([$ownerId], $promotoresIds);
+
+        if (!in_array($pedido->user_id, $userIdsPermitidos)) {
+            return response()->json(['message' => 'No autorizado. Este pedido no pertenece a tu equipo.'], 403);
+        }
+
+        try {
+            $accessToken = $this->getDropboxToken();
+            $dropboxClient = new DropboxClient($accessToken); // Ajusta la instanciación según tus namespaces
+
+            DB::beginTransaction();
+            $guiasGuardadas = [];
+
+            foreach ($request->file('files') as $file) {
+                $timestamp = Carbon::now()->format('ymd-His');
+                $extension = $file->getClientOriginalExtension();
+                
+                // Nombre único adaptado a la nomenclatura de tus guías de pedido
+                $fileName = "{$timestamp}_U" . $user->id . "-P{$pedido->id}.{$extension}";
+                $path = "/guias_pedidos/{$pedido->id}/{$fileName}";
+                
+                $dropboxClient->upload($path, file_get_contents($file->getRealPath()), 'add');
+
+                $publicUrl = null;
+                try {
+                    $sharedResponse = $dropboxClient->createSharedLinkWithSettings($path);
+                    $publicUrl = $sharedResponse['url'];
+                } catch (\Exception $e) {
+                    $links = $dropboxClient->listSharedLinks($path);
+                    $publicUrl = !empty($links) ? $links[0]['url'] : null;
+                }
+
+                if ($publicUrl) {
+                    $publicUrl = str_replace('dl=0', 'dl=1', $publicUrl);
+                }
+
+                // Guardado en la nueva tabla de guías solicitada
+                $guia = Guia::create([
+                    'pedido_id'  => $pedido->id,
+                    'name'       => $fileName,
+                    'size'       => round($file->getSize() / 1024),
+                    'extension'  => $extension,
+                    'public_url' => $publicUrl,
+                ]);
+
+                $guiasGuardadas[] = $guia;
+            }
+
+            DB::commit();
+            return response()->json(['message' => 'Guía sincronizada con éxito en Dropbox.', 'guias' => $guiasGuardadas], 201);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+    
+            $detailedError = method_exists($e, 'getResponse') 
+                ? $e->getResponse()->getBody()->getContents() 
+                : $e->getMessage();
+
+            Log::error('Error detallado de Dropbox al subir Guía:', ['info' => $detailedError]);
+            
+            return response()->json([
+                'message' => 'Fallo en la comunicación con Dropbox.',
+                'debug' => $detailedError
+            ], 500);
+        }
+    }
+
+    private function getDropboxToken()
+    {
+        $response = Http::asForm()->post('https://api.dropbox.com/oauth2/token', [
+            'grant_type'    => 'refresh_token',
+            'refresh_token' => env('DROPBOX_REFRESH_TOKEN'),
+            'client_id'     => env('DROPBOX_APP_KEY'),
+            'client_secret' => env('DROPBOX_APP_SECRET'),
+        ]);
+
+        if (!$response->successful()) {
+            throw new \Exception('No se pudo refrescar el token de Dropbox.');
+        }
+
+        return $response->json()['access_token'];
     }
 }

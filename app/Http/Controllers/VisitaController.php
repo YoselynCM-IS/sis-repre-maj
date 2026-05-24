@@ -9,6 +9,7 @@ use App\Models\Visita;
 use App\Models\Cliente;
 use App\Models\VisitaLog;
 use App\Models\Cobranza;
+use App\Models\Delegate;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
@@ -39,7 +40,7 @@ class VisitaController extends Controller
                 $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
                 
                 // Obtener los IDs de los usuarios promotores asignados a este representante
-                $promotoresIds = \App\Models\Delegate::where('representative_id', $ownerId)
+                $promotoresIds = Delegate::where('representative_id', $ownerId)
                                     ->pluck('user_id')
                                     ->toArray();
 
