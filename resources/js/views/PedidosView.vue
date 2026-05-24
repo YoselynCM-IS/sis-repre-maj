@@ -481,7 +481,7 @@ const fieldValidation = reactive({
 const orderForm = reactive({
     prioridad: 'media', clientId: null, clientName: '', receiverType: 'cliente',
     receiver: { persona_recibe: '', rfc: '', regimen_fiscal: '', telefono: '', correo: '', cp: '', estado: '', municipio: '', colonia: '', calle_num: '' },
-    logistics: { deliveryOption: 'paqueteria', paqueteria_nombre: '', comentarios_logistica: '' },
+    logistics: { deliveryOption: null, paqueteria_nombre: '', comentarios_logistica: '' },
     comments: '', orderItems: [], 
 });
 
@@ -760,6 +760,23 @@ const submitOrder = async () => {
 
 const closeAndRedirect = () => { systemModal.visible = false; router.push('/pedidos'); };
 onMounted(async () => { try { const res = await axios.get('/estados'); estados.value = res.data; } catch (e) { console.error(e); } });
+
+// OBSERVADOR PARA CARGAR AUTOMÁTICAMENTE LA ÚLTIMA PAQUETERÍA REGISTRADA POR EL USUARIO
+watch(() => orderForm.logistics.deliveryOption, async (newMethod) => {
+    if (newMethod === 'paqueteria') {
+        try {
+            // Realizar consulta dinámica al backend para obtener el último registro del usuario activo
+            const response = await axios.get('/pedidos/ultima-paqueteria');
+            if (response.data && response.data.ultima_paqueteria) {
+                orderForm.logistics.paqueteria_nombre = response.data.ultima_paqueteria;
+            }
+        } catch (error) {
+            // Manejo silencioso de errores para no interrumpir el flujo visual del formulario si no hay registros previos
+            console.error("No se pudo recuperar la última paquetería registrada:", error);
+        }
+    }
+});
+
 </script>
 
 <style scoped>

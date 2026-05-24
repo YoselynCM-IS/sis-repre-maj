@@ -28,6 +28,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dashboard/stats', [DashboardController::class, 'getStats']);
     
     // Pedidos
+    Route::get('/pedidos/ultima-paqueteria', [PedidoController::class, 'getUltimaPaqueteria']);
     Route::get('/pedidos', [PedidoController::class, 'index']); 
     Route::post('/pedidos', [PedidoController::class, 'store']);
     Route::get('/pedidos/{id}', [PedidoController::class, 'show']); 

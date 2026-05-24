@@ -156,6 +156,32 @@ class PedidoController extends Controller
     }
 
     /**
+     * Obtiene la última empresa de paquetería sugerida por el usuario autenticado.
+     */
+    public function getUltimaPaqueteria(Request $request)
+    {
+        try {
+            $user = $request->user();
+            if (!$user) {
+                return response()->json(['ultima_paqueteria' => null], 401);
+            }
+
+            // Buscar el último pedido del usuario donde se haya rellenado el campo de paquetería sugerida
+            $ultimoPedido = Pedido::where('user_id', $user->id)
+                ->whereNotNull('paqueteria_nombre')
+                ->where('paqueteria_nombre', '!=', '')
+                ->orderBy('id', 'desc')
+                ->first();
+
+            return response()->json([
+                'ultima_paqueteria' => $ultimoPedido ? $ultimoPedido->paqueteria_nombre : null
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['ultima_paqueteria' => null, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * Registro de pedido con Doble Escritura y Validación de Unicidad Cuádruple.
      */
     public function store(Request $request)
