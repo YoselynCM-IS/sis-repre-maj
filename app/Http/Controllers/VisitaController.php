@@ -33,12 +33,24 @@ class VisitaController extends Controller
             // 1. Definimos el Query base
             $query = Visita::query();
 
-            // 2. Lógica de visibilidad por Rol
-            // Si NO es representante (asumiendo que los demás ven todo), no filtramos por user_id.
-            // Si ES representante, aplicamos el filtro de propiedad.
+            // 2. Lógica de visibilidad por Rol RESTRINGIDA
+            // Si ES representante, puede ver sus visitas y las de TODOS sus promotores asignados.
             if ($user->role === 'representante') {
                 $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
-                $query->where('user_id', $ownerId);
+                
+                // Obtener los IDs de los usuarios promotores asignados a este representante
+                $promotoresIds = \App\Models\Delegate::where('representative_id', $ownerId)
+                                    ->pluck('user_id')
+                                    ->toArray();
+
+                // Combinar el ID del representante con los IDs de sus promotores
+                $userIdsPermitidos = array_merge([$ownerId], $promotoresIds);
+
+                // El representante ve las visitas de todo su equipo
+                $query->whereIn('user_id', $userIdsPermitidos);
+            } else {
+                // SI ES CUALQUIER OTRO ROL (COMO PROMOTOR/DELEGADO), SOLO VE SUS PROPIAS VISITAS
+                $query->where('user_id', $user->id);
             }
 
             // Definimos las relaciones base
