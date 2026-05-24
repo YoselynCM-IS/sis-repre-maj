@@ -81,7 +81,7 @@ class User extends Authenticatable
      */
     public function delegates()
     {
-        return $this->hasMany(Delegate::class, 'user_id');
+        return $this->hasMany(Delegate::class, 'representative_id');
     }
 
     /**

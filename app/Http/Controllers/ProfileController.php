@@ -107,9 +107,10 @@ class ProfileController extends Controller
 
                 // 2. Vincular a la tabla de delegados bajo el ID del representante actual
                 $delegate = Delegate::create([
-                    'user_id' => $request->user()->id, 
-                    'name'    => $newUser->name,
-                    'email'   => $newUser->email,
+                    'user_id'           => $newUser->id,             // Se corrige: ID del Promotor (nuevo usuario)
+                    'representative_id' => $request->user()->id,     // Se agrega: ID del Representante que lo da de alta
+                    'name'              => $newUser->name,
+                    'email'             => $newUser->email,
                 ]);
 
                 return response()->json([
