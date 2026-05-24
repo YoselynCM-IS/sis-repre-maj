@@ -322,7 +322,7 @@ class VisitaController extends Controller
             $visita = Visita::where('id', $id)
                 ->where('user_id', $ownerId)
                 // Carga de relación cobranza agregada de manera limpia
-                ->with(['cliente.cobranza', 'estado', 'logs.user'])
+                ->with(['cliente.cobranzas', 'estado', 'logs.user'])
                 ->first();
 
             if (!$visita) {
@@ -340,6 +340,7 @@ class VisitaController extends Controller
     }
 
     // NUEVO MÉTODO QUIRÚRGICO PARA GUARDAR O ACTUALIZAR LA COBRANZA DESDE EL MODAL
+    // REEMPLAZA COMPLETAMENTE TU MÉTODO storeCobranza POR ESTE:
     public function storeCobranza(Request $request, $clienteId)
     {
         try {
@@ -350,17 +351,16 @@ class VisitaController extends Controller
                 'correo'      => 'required_if:metodo_pago,Escuela|nullable|email|max:255',
             ]);
 
-            $cobranza = Cobranza::updateOrCreate(
-                ['cliente_id' => $clienteId],
-                [
-                    'metodo_pago' => $request->metodo_pago,
-                    'responsable' => $request->metodo_pago === 'Escuela' ? strtoupper($request->responsable) : null,
-                    'telefono'    => $request->metodo_pago === 'Escuela' ? $request->telefono : null,
-                    'correo'      => $request->metodo_pago === 'Escuela' ? strtolower($request->correo) : null,
-                ]
-            );
+            // Se cambia updateOrCreate por create para permitir múltiples cobranzas
+            $cobranza = Cobranza::create([
+                'cliente_id'  => $clienteId,
+                'metodo_pago' => $request->metodo_pago,
+                'responsable' => $request->metodo_pago === 'Escuela' ? strtoupper($request->responsable) : null,
+                'telefono'    => $request->metodo_pago === 'Escuela' ? $request->telefono : null,
+                'correo'      => $request->metodo_pago === 'Escuela' ? strtolower($request->correo) : null,
+            ]);
 
-            return response()->json(['message' => 'Información de cobranza sincronizada exitosamente.', 'cobranza' => $cobranza]);
+            return response()->json(['message' => 'Información de cobranza registrada exitosamente.', 'cobranza' => $cobranza]);
         } catch (\Exception $e) {
             Log::error("Error guardando cobranza para cliente {$clienteId}: " . $e->getMessage());
             return response()->json(['message' => 'Error al procesar la información de cobranza.'], 500);

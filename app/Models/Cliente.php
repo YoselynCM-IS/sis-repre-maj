@@ -97,8 +97,9 @@ class Cliente extends Model
         );
     }
 
-    public function cobranza()
+    // REEMPLAZA ÚNICAMENTE ESTE MÉTODO AL FINAL DE TU MODELO CLIENTE:
+    public function cobranzas()
     {
-        return $this->hasOne(Cobranza::class, 'cliente_id');
+        return $this->hasMany(Cobranza::class, 'cliente_id')->orderBy('id', 'desc');
     }
 }

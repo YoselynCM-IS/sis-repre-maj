@@ -131,7 +131,7 @@
                                 <label class="label-large">Nombre del Director / Coordinador</label>
                                 <p class="value-text italic leading-relaxed text-sm">{{ visita.director_plantel || visita.cliente?.contacto || 'Sin director registrado' }}</p>
                             </div>
-                            <div v-if="visita?.cliente?.tipo === 'CLIENTE' && visita.cliente?.cobranza" class="data-row mt-6 pt-6 border-t border-dashed border-slate-200 animate-fade-in">
+                            <div v-if="visita?.cliente?.tipo === 'CLIENTE' && visita.cliente?.cobranzas?.length" class="data-row mt-6 pt-6 border-t border-dashed border-slate-200 animate-fade-in">
                                 <label class="label-large !text-red-700 font-black tracking-widest text-[10px] mb-4 flex items-center gap-2 uppercase">
                                     <i class="fas fa-hand-holding-usd"></i> Cobranza
                                 </label>
@@ -144,25 +144,57 @@
                                     <i class="fas" :class="visita.cliente?.cobranza ? 'fa-edit text-amber-600' : 'fa-plus-circle text-green-600'"></i>
                                     {{ visita.cliente?.cobranza ? 'EDITAR INFORMACIÓN' : 'AÑADIR INFORMACIÓN' }}
                                 </button>
+
+                                
                                 <div class="info-card grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 pl-4">
-                                    <div>
-                                        <label class="label-large"><span class="text-slate-400">Método de pago:</span></label>
-                                        <p class="value-text uppercase text-xs font-black text-slate-800 leading-relaxed mt-0.5">{{ visita.cliente.cobranza.metodo_pago }}</p>
+                                    <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
+                                        <table class="min-width-full divide-y divide-gray-200 responsive-table">
+                                            <thead class="bg-gray-100 hidden md:table-header-group">
+                                                <tr>
+                                                    <th class="table-header">N.</th>
+                                                    <th class="table-header">Método de pago</th>
+                                                    <th class="table-header">Responsable</th>
+                                                    <th class="table-header">Teléfono</th>
+                                                    <th class="table-header">Correo</th>
+                                                    <th class="table-header">Creado el</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="bg-white bk divide-y divide-gray-100 block md:table-row-group">
+                                                <tr v-for="(item, index) in visita.cliente.cobranzas" :key="item.id" class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                                                    <td class="table-cell text-left md:text-center block md:table-cell">
+                                                        <span class="status-badge bg-blue-50 text-blue-700 border border-blue-100">
+                                                            {{ index + 1 }}
+                                                        </span>
+                                                    </td>
+                                                    <td class="table-cell block md:table-cell">
+                                                        <div class="text-sm font-bold text-gray-800 uppercase leading-tight">
+                                                            {{ item.metodo_pago }}
+                                                        </div>
+                                                    </td>
+                                                    <td class="table-cell block md:table-cell">
+                                                        <div class="text-sm font-bold text-gray-800 uppercase leading-tight">
+                                                            {{ item.responsable || '—' }}
+                                                        </div>
+                                                    </td>
+                                                    <td class="table-cell block md:table-cell">
+                                                        <div class="text-sm font-bold text-gray-800 uppercase leading-tight">
+                                                            {{ item.telefono || '—' }}
+                                                        </div>
+                                                    </td>
+                                                    <td class="table-cell block md:table-cell">
+                                                        <div class="text-sm font-bold text-gray-800 uppercase leading-tight">
+                                                            {{ item.correo || '—' }}
+                                                        </div>
+                                                    </td>
+                                                    <td class="table-cell block md:table-cell">
+                                                        <div class="text-sm font-bold text-gray-800 uppercase leading-tight">
+                                                            {{ item.created_at ? new Date(item.created_at).toLocaleDateString('es-MX', { year: 'numeric', month: '2-digit', day: '2-digit' }) : '—' }}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
                                     </div>
-                                    <template v-if="visita.cliente.cobranza.metodo_pago === 'Escuela'">
-                                        <div>
-                                            <label class="label-large"><span class="text-slate-400">Nombre del responsable:</span></label>
-                                            <p class="value-text uppercase text-xs font-bold text-slate-800 leading-relaxed mt-0.5">{{ visita.cliente.cobranza.responsable }}</p>
-                                        </div>
-                                        <div>
-                                            <label class="label-large"><span class="text-slate-400">Teléfono de contacto:</span></label>
-                                            <p class="value-text text-xs font-bold text-slate-800 leading-relaxed font-mono mt-0.5">{{ visita.cliente.cobranza.telefono }}</p>
-                                        </div>
-                                        <div>
-                                            <label class="label-large"><span class="text-slate-400">Correo electrónico:</span></label>
-                                            <p class="value-text text-xs font-bold text-slate-800 leading-relaxed mt-0.5 normal-case" style="text-transform: none !important;">{{ visita.cliente.cobranza.correo }}</p>
-                                        </div>
-                                    </template>
                                 </div>
                             </div>
                         </div>
@@ -580,13 +612,17 @@ const submitCobranza = async () => {
     try {
         const response = await axios.post(`/clientes/${visita.value.cliente_id}/cobranza`, cobranzaForm.value);
         
-        // Inyectamos el objeto de cobranza actualizado al estado actual de la vista para renderizarlo inmediatamente
         if (visita.value && visita.value.cliente) {
-            visita.value.cliente.cobranza = response.data.cobranza;
+            // Se asegura de que la variable exista como un arreglo antes de insertar
+            if (!visita.value.cliente.cobranzas) {
+                visita.value.cliente.cobranzas = [];
+            }
+            // Agrega el nuevo registro de cobranza al listado
+            visita.value.cliente.cobranzas.unshift(response.data.cobranza);
         }
         closeCobranzaModal();
     } catch (err) {
-        alert(err.response?.data?.message || "Error al actualizar los datos de cobranza.");
+        alert(err.response?.data?.message || "Error al registrar la información de cobranza.");
     } finally {
         savingCobranza.value = false;
     }

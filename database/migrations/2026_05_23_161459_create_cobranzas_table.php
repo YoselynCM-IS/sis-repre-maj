@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('cobranzas', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('cliente_id')->unique(); // Vinculado de manera única por cliente maestro
+            $table->unsignedBigInteger('cliente_id'); // Vinculado de manera única por cliente maestro
             $table->enum('metodo_pago', ['Pago de CIE', 'Venta directa', 'Escuela']);
             
             // Campos condicionales obligatorios para "Escuela"
