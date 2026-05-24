@@ -16,7 +16,12 @@ class ProfileController extends Controller
      */
     public function show(Request $request)
     {
-        return response()->json($request->user()->load('delegates'));
+        $user = $request->user();
+        
+        // Cargamos los delegados y para cada uno incluimos sus datos de usuario de la tabla users
+        $user->setRelation('delegates', Delegate::where('representative_id', $user->id)->with('user')->get());
+
+        return response()->json($user);
     }
 
     /**
@@ -91,6 +96,7 @@ class ProfileController extends Controller
 
         $validated = $request->validate([
             'username' => 'required|string|unique:users,name|max:255',
+            'full_name' => 'required|string|max:255',
             'password' => 'required|string|min:6',
         ]);
 
@@ -99,9 +105,9 @@ class ProfileController extends Controller
                 // 1. Crear el usuario para el acceso (Login)
                 $newUser = User::create([
                     'name'      => $validated['username'],
-                    'full_name' => 'Delegado: ' . $validated['username'],
+                    'full_name' => $validated['full_name'], // <-- SE CAMBIA: Ahora guarda el valor dinámico ingresado
                     'email'     => $validated['username'] . '@delegate.majestic',
-                    'password'  => Hash::make($validated['password']),
+                    'password'  => $validated['password'],
                     'position'  => 'Delegado Autorizado',
                 ]);
 

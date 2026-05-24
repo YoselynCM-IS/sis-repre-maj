@@ -376,21 +376,52 @@
               <!-- Formulario agregar delegado -->
               <Transition name="fade">
                 <div v-if="showAddDelegate" class="add-delegate-form">
-                  <div class="add-delegate-form-inner">
+                  <div class="add-delegate-form-inner mb-2">
                     <div class="field-group">
-                      <label class="field-label">Usuario Delegado</label>
+                      <label class="field-label">Nombre Completo</label>
+                      <div class="input-wrapper">
+                        <span class="input-icon"><i class="fas fa-id-card"></i></span>
+                        <input 
+                          v-model="newDelegate.full_name" 
+                          type="text" 
+                          placeholder="Ej. Juan Pérez López" 
+                          class="field-input"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div class="field-group">
+                      <label class="field-label">Usuario</label>
                       <div class="input-wrap">
                         <i class="fas fa-user input-icon"></i>
-                        <input v-model="newDelegate.username" type="text" class="field-input" placeholder="ej. juan.perez">
+                        <input v-model="newDelegate.username" type="text" class="field-input" placeholder="ej. juan.perez" style="text-transform: lowercase !important;">
                       </div>
                     </div>
                     <div class="field-group">
-                      <label class="field-label">Contraseña Temporal</label>
-                      <div class="input-wrap">
+                      <label class="field-label">Contraseña</label>
+                      <div class="input-wrap" style="position: relative; display: flex; align-items: center; overflow: visible !important;">
                         <i class="fas fa-lock input-icon"></i>
-                        <input v-model="newDelegate.password" type="password" class="field-input" placeholder="••••••••">
+                        <input 
+                          v-model="newDelegate.password" 
+                          :type="showPassword ? 'text' : 'password'" 
+                          class="field-input" 
+                          placeholder="••••••••"
+                          style="padding-right: 42px !important; width: 100%; text-transform: none !important;" 
+                        >
+                        <button 
+                          type="button" 
+                          @click="showPassword = !showPassword" 
+                          style="position: absolute; right: 14px; background: none; border: none; cursor: pointer; color: #94a3b8; transition: color 0.2s; z-index: 10 !important; display: flex; align-items: center; justify-content: center; height: 100%;"
+                          onmouseover="this.style.color='#64748b'"
+                          onmouseout="this.style.color='#94a3b8'"
+                        >
+                          {{ showPassword ? 'Hide' : 'Show' }}
+                        </button>
                       </div>
                     </div>
+                      
+                  </div>
+                  <div class="add-delegate-form-inner">
                     <div class="add-delegate-actions">
                       <button @click="addDelegate" class="btn-primary btn-primary--purple btn-sm">
                         <i class="fas fa-user-plus"></i> Crear Cuenta
@@ -427,8 +458,12 @@
                         <div class="delegate-cell">
                           <div class="delegate-avatar">{{ delegate.name.charAt(0).toUpperCase() }}</div>
                           <div>
-                            <p class="delegate-name">{{ delegate.name }}</p>
-                            <p class="delegate-id">ID #{{ String(delegate.id).padStart(4, '0') }}</p>
+                            <p class="delegate-name" style="text-transform: none !important; font-weight: 600; margin-bottom: 2px;">
+                              {{ delegate.user.full_name }}
+                            </p>
+                            <p class="delegate-id" style="text-transform: lowercase !important; font-size: 0.85em; color: #64748b; margin: 0;">
+                              {{ delegate.name.toLowerCase() }}
+                            </p>
                           </div>
                         </div>
                       </td>
@@ -495,7 +530,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import axios from '../../axios'
 
 const loading = ref(false)
@@ -503,6 +538,7 @@ const loadingData = ref(true)
 const activeSection = ref('personal')
 const showAddDelegate = ref(false)
 const showPwd = ref([false, false, false])
+const showPassword = ref(false)
 
 // Cambiamos el array fijo por uno computado que filtra según el rol
 const navItems = computed(() => {
@@ -530,7 +566,7 @@ const user = ref({
 const estados = ref([])
 const delegates = ref([])
 const security = reactive({ current_password: '', password: '', password_confirmation: '' })
-const newDelegate = reactive({ username: '', password: '' })
+const newDelegate = reactive({ full_name: '', username: '', password: '' })
 
 const modal = reactive({ visible: false, title: '', message: '', type: 'info', confirm: null })
 const toast = reactive({ visible: false, message: '' })
@@ -646,13 +682,13 @@ const updatePassword = async () => {
 }
 
 const addDelegate = async () => {
-  if (!newDelegate.username || !newDelegate.password)
-    return openModal('Datos Incompletos', 'Escribe usuario y contraseña.', 'warning')
+  if (!newDelegate.username || !newDelegate.password || !newDelegate.full_name)
+    return openModal('Datos Incompletos', 'Escribe nombre, usuario y contraseña.', 'warning')
   loading.value = true
   try {
     const res = await axios.post('profile/delegates', newDelegate)
     delegates.value.push(res.data.delegate)
-    newDelegate.username = ''; newDelegate.password = ''
+    newDelegate.username = ''; newDelegate.password = ''; newDelegate.full_name = '';
     showAddDelegate.value = false
     openModal('¡Delegado Creado!', 'La cuenta fue vinculada con éxito.', 'success')
   } catch { openModal('Error', 'No se pudo crear la cuenta delegada.', 'danger') }
@@ -670,6 +706,13 @@ const removeDelegate = async (id) => {
     showToast('Acceso revocado correctamente')
   } catch { openModal('Error', 'No se pudo revocar el acceso.', 'danger') }
 }
+
+// OBSERVADOR PARA FORZAR EL NOMBRE DE USUARIO EN MINÚSCULAS Y SIN ESPACIOS
+watch(() => newDelegate.username, (newValue) => {
+  if (newValue) {
+    newDelegate.username = newValue.toLowerCase().replace(/\s+/g, '');
+  }
+})
 
 onMounted(fetchInitialData)
 </script>

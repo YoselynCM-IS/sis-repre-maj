@@ -115,4 +115,26 @@ class User extends Authenticatable
     {
         return $this->hasMany(Gasto::class, 'user_id');
     }
+
+    /**
+     * Fuerza a que el nombre de usuario de inicio de sesión siempre se guarde en minúsculas.
+     */
+    public function setNameAttribute($value)
+    {
+        $this->attributes['name'] = strtolower(trim($value));
+    }
+
+    /**
+     * Encripta la contraseña respetando de forma exacta las mayúsculas, minúsculas y espacios.
+     */
+    public function setPasswordAttribute($value)
+    {
+        // Si el valor ya viene encriptado, lo almacena directo.
+        // Si viene en texto plano (desde el formulario), lo encripta tal cual fue escrito.
+        if (\Hash::needsRehash($value)) {
+            $this->attributes['password'] = \Hash::make($value);
+        } else {
+            $this->attributes['password'] = $value;
+        }
+    }
 }
