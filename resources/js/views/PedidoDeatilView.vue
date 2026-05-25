@@ -123,19 +123,11 @@
                             <i class="fas fa-box-open text-red-700"></i> 3. Estatus de envio
                         </div>
                         <div class="space-y-6">
-                            <div>
-                                <label class="label-mini label-large">Estado del Pedido</label>
-                                <span :class="getStatusClass(pedido.status)" class="status-badge w-full text-center value-text py-2.5 shadow-sm rounded-xl">
-                                    {{ pedido.status }}
-                                </span>
-                            </div>
                             <div class="bg-red-50/30 p-4 rounded-2xl border border-red-100">
                                     <label class="label-mini label-large">Método de Envío</label>
                                     <span class="text-xs font-black text-red-700 value-text uppercase block">{{ getDeliveryOption(pedido.delivery_option) }}</span>
                                 </div>
-                            <div class="grid grid-cols-1 gap-4">
-                               
-                                
+                            <div class="grid grid-cols-1 gap-4 mb-5">
                                 <div v-if="pedido.delivery_option === 'paqueteria'" class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                                     <label class="label-mini label-large">Paquetería</label>
                                     <span class="text-xs font-black text-slate-800 value-text uppercase block">{{ pedido.paqueteria_nombre || 'POR DEFINIR' }}</span>
@@ -146,6 +138,62 @@
                                     <span class="text-[10px] font-bold text-slate-500 value-text uppercase leading-tight block">
                                         {{ pedido.commentary_delivery_option }}
                                     </span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="label-mini label-large">Estado del Pedido</label>
+                                <span :class="getStatusClass(pedido.status)" class="status-badge w-full text-center value-text py-2.5 shadow-sm rounded-xl">
+                                    {{ pedido.status }}
+                                </span>
+                                <button 
+                                    v-if="user && user.role === 'representante'" 
+                                    type="button"
+                                    @click="openStatusModal"
+                                    class="btn-secondary flex items-center justify-center gap-2 w-full mt-2 !border-slate-300 hover:bg-slate-50 transition-colors py-2.5"
+                                >
+                                    <i class="fas fa-edit text-amber-600"></i>
+                                    ACTUALIZAR ESTADO
+                                </button>
+                            </div>
+                            <div v-if="pedido && pedido.historial_status && pedido.historial_status.length > 0" class="table-container animate-fade-in p-0 mt-6">
+                                <label class="label-mini label-large">Historial de Cambios de Estado</label>
+                                <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
+                                    <table class="min-width-full divide-y divide-gray-200 responsive-table">
+                                        <thead class="bg-gray-100 hidden md:table-header-group">
+                                            <tr>
+                                                <th class="table-header">Representante</th>
+                                                <th class="table-header text-center w-36">Nuevo Estado</th>
+                                                <th class="table-header text-left">Comentarios</th>
+                                                <th class="table-header text-right w-40">Fecha de Modificación</th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody class="bg-white divide-y divide-gray-100 block md:table-row-group">
+                                            <tr v-for="historial in pedido.historial_status" :key="historial.id" 
+                                                class="hover:bg-gray-50 transition-colors block md:table-row relative p-5 md:p-0 border-b md:border-none">
+                                                
+                                                <td class="table-cell block md:table-cell" data-label="REPRESENTANTE">
+                                                    <p class="font-black text-slate-800 text-xs uppercase leading-tight">
+                                                        {{ historial.user.full_name }}
+                                                    </p>
+                                                </td>
+
+                                                <td class="table-cell text-left md:text-center block md:table-cell" data-label="ESTADO">
+                                                    <span :class="getStatusClass(historial.status)" class="status-badge inline-block text-center text-[10px] py-1 px-3 rounded-lg font-black tracking-wider shadow-sm uppercase">
+                                                        {{ historial.status }}
+                                                    </span>
+                                                </td>
+
+                                                <td class="table-cell text-left font-bold text-slate-600 text-xs block md:table-cell whitespace-pre-line" data-label="COMENTARIOS">
+                                                    {{ historial.comentarios }}
+                                                </td>
+
+                                                <td class="table-cell text-left md:text-right font-bold text-slate-400 text-xs block md:table-cell" data-label="FECHA">
+                                                    {{ new Date(historial.created_at).toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' }) }}
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
@@ -459,6 +507,60 @@
 
             </div>
         </div>
+        <div v-if="showStatusModal" class="custom-modal-backdrop">
+            <div class="custom-modal-window bg-white border-t-8 border-t-red-700 shadow-premium">
+                
+                <div class="custom-modal-content">
+                    
+                    <div class="flex justify-between items-center bg-white pb-4 mb-6 border-b border-slate-100">
+                        <div class="flex items-center gap-3">
+                            <div class="w-2 h-7 bg-red-700 rounded-full"></div>
+                            <h3 class="text-sm md:text-base font-black text-black uppercase tracking-wider m-0">
+                                <i class="fas fa-tasks text-red-700 mr-1"></i> Cambiar Estado del Pedido
+                            </h3>
+                        </div>
+                    </div>
+
+                    <form @submit.prevent="submitStatusUpdate" class="space-y-6 m-0 bg-white">
+                        <div class="form-group">
+                            <label class="label-large mb-2 block">Elegir Estado *</label>
+                            <select 
+                                v-model="statusForm.status" 
+                                required 
+                                class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-black uppercase tracking-wider text-slate-700 focus:outline-none focus:border-red-600"
+                            >
+                                <option value="PROCESO">EN PROCESO</option>
+                                <option value="ENTREGADO">ENTREGADO</option>
+                                <option value="CANCELADO">CANCELADO</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="label-large mb-2 block">Comentarios / Justificación *</label>
+                            <textarea 
+                                v-model="statusForm.comentarios" 
+                                required 
+                                rows="4"
+                                placeholder="Escriba los motivos o comentarios del cambio de estado..."
+                                class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-bold uppercase text-slate-800 focus:outline-none focus:border-red-600 resize-none"
+                            ></textarea>
+                        </div>
+
+                        <div class="custom-modal-buttons pt-5 border-t border-slate-100 flex justify-end gap-3">
+                            <button type="button" @click="closeStatusModal" class="btn-secondary modal-btn text-xs font-black uppercase tracking-widest text-center">
+                                Cancelar
+                            </button>
+                            <button type="submit" :disabled="savingStatus" class="btn-primary px-5 py-2.5 modal-btn text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2">
+                                <i v-if="savingStatus" class="fas fa-circle-notch fa-spin"></i>
+                                <i v-else class="fas fa-save"></i>
+                                {{ savingStatus ? 'GUARDANDO...' : 'GUARDAR' }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
     </div>
 </template>
 
@@ -478,6 +580,70 @@ const user = ref(null)
 // ── GESTIÓN DE GUÍAS EN EXPEDIENTE DIGITAL ──
 const uploadLoading = ref(false)
 const selectedFiles = ref([])
+
+// ── GESTIÓN DEL MODAL DE CAMBIO DE ESTATUS ──
+const showStatusModal = ref(false)
+const savingStatus = ref(false)
+const statusForm = ref({
+    status: '',
+    comentarios: ''
+})
+
+// Abre el modal inicializando los valores con el estatus actual del pedido
+const openStatusModal = () => {
+    // Si el estatus es 'PROCESO' o 'EN PROCESO', aseguramos que haga match con los valores del select
+    const currentStatus = pedido.value?.status === 'EN PROCESO' ? 'PROCESO' : (pedido.value?.status || 'PROCESO')
+    statusForm.value = {
+        status: currentStatus,
+        comentarios: ''
+    }
+    showStatusModal.value = true
+}
+
+// Cierra y limpia el formulario
+const closeStatusModal = () => {
+    showStatusModal.value = false
+    statusForm.value = { status: '', comentarios: '' }
+}
+
+// Envía la petición asíncrona a Laravel
+const submitStatusUpdate = async () => {
+    if (!statusForm.value.status || !statusForm.value.comentarios) return
+
+    savingStatus.value = true
+    try {
+        const response = await axios.post(`/pedidos/${id}/update-status`, {
+            status: statusForm.value.status,
+            comentarios: statusForm.value.comentarios
+        })
+
+        if (pedido.value) {
+            pedido.value.status = response.data.status || statusForm.value.status
+            
+            // Inicializa el arreglo en Vue si no viniera definido desde el servidor
+            if (!pedido.value.historial_status) {
+                pedido.value.historial_status = []
+            }
+            
+            // Inserta el nuevo registro al principio de la tabla reactiva con los datos locales
+            pedido.value.historial_status.unshift({
+                id: response.data.log?.id || Date.now(),
+                user_id: user.value?.id,
+                user: { name: user.value?.name },
+                status: response.data.status || statusForm.value.status,
+                comentarios: statusForm.value.comentarios,
+                created_at: new Date().toISOString()
+            })
+        }
+
+        alert('Estado del pedido actualizado correctamente.')
+        closeStatusModal()
+    } catch (err) {
+        alert(err.response?.data?.message || 'Error al actualizar el estado del expediente.')
+    } finally {
+        savingStatus.value = false
+    }
+}
 
 // Función que maneja la selección del archivo
 const handleFileChange = (event) => {
@@ -637,4 +803,69 @@ onMounted(() => {
 
 .value-text { color: #be5e5e; line-height: 1.4; }
 .label-large { display: block; font-size: 0.72rem; font-weight: 900; text-transform: uppercase; color: #000000; margin-bottom: 6px; letter-spacing: 0.12em; opacity: 0.8; }
+/* ==========================================================================
+   ESTILOS DE CAPA, CONTENEDOR SÓLIDO BLANCO Y PADDINGS DEL MODAL
+   ========================================================================== */
+.custom-modal-backdrop {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background-color: rgba(15, 23, 42, 0.4) !important;
+    backdrop-filter: blur(8px) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 99999 !important;
+    padding: 24px !important;
+}
+
+.custom-modal-window {
+    width: 100% !important;
+    max-width: 32rem !important;
+    background-color: #ffffff !important;
+    border-radius: 2.5rem !important;
+    overflow: hidden !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+    box-sizing: border-box !important;
+    animation: modalBounceIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+/* Espaciado interno simétrico hacia las cuatro orillas */
+.custom-modal-content {
+    padding-top: 2rem !important;
+    padding-bottom: 2rem !important;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+    box-sizing: border-box !important;
+}
+
+/* Forzar la alineación de botones uno al lado del otro */
+.custom-modal-buttons {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 16px !important;
+    width: 100% !important;
+}
+
+.modal-btn {
+    flex: 1 !important;
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+}
+
+@keyframes modalBounceIn {
+    from { opacity: 0; transform: scale(0.93) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@media (max-width: 640px) {
+    .custom-modal-backdrop { padding: 16px !important; }
+    .custom-modal-window { border-radius: 2rem !important; }
+    .custom-modal-content { padding: 1.25rem !important; }
+    .custom-modal-buttons { gap: 10px !important; }
+}
 </style>

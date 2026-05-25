@@ -35,6 +35,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/proxy/dipomex', [PedidoController::class, 'proxyDipomex']);
     Route::put('/pedidos/{id}', [PedidoController::class, 'update']);
     Route::post('pedidos/store-guia', [PedidoController::class, 'storeGuia']); 
+    // Ruta exclusiva para actualizar el estatus de un pedido e insertar en el historial
+    Route::post('/pedidos/{id}/update-status', [PedidoController::class, 'updateStatus']);
 
     // Gastos
     Route::get('/gastos', [GastoController::class, 'index']); 

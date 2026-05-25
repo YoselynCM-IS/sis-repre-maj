@@ -156,7 +156,7 @@ class PedidoController extends Controller
             $user = $request->user();
             $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
 
-            $pedido = Pedido::with(['cliente', 'detalles.libro', 'receptor', 'logs.user', 'guias']) 
+            $pedido = Pedido::with(['cliente', 'detalles.libro', 'receptor', 'logs.user', 'guias', 'historialStatus.user']) 
                         ->where('id', $id)
                         // ->where('user_id', $ownerId)
                         ->firstOrFail();
@@ -736,5 +736,60 @@ class PedidoController extends Controller
         }
 
         return $response->json()['access_token'];
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        // 1. Validar que los parámetros requeridos cumplan con las opciones estipuladas
+        $request->validate([
+            'status' => 'required|in:PROCESO,ENTREGADO,CANCELADO',
+            'comentarios' => 'required|string|max:1000',
+        ]);
+
+        // 2. Buscar el pedido original o fallar si no existe
+        $pedido = Pedido::findOrFail($id);
+
+        // 3. Ejecutar una transacción de base de datos para asegurar consistencia mutua
+        DB::beginTransaction();
+        try {
+            // Homologar el string para mantener consistencia visual si eligieron PROCESO
+            $nuevoEstado = $request->status === 'PROCESO' ? 'EN PROCESO' : $request->status;
+
+            // Actualizar el estado en la tabla 'pedidos'
+            $pedido->status = $nuevoEstado;
+            $pedido->save();
+
+            // Insertar el log detallado en la nueva tabla 'status'
+            // NOTA: Si creaste un Modelo llamado Status, puedes usar Status::create([...])
+            DB::table('status')->insert([
+                'user_id' => auth()->id(), // ID del representante autenticado
+                'pedido_id' => $pedido->id,
+                'status' => $nuevoEstado,
+                'comentarios' => $request->comentarios,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            DB::commit();
+
+            // Recuperar el último registro insertado por si quieres pintarlo en un historial dinámico
+            $ultimoLog = DB::table('status')
+                ->where('pedido_id', $pedido->id)
+                ->orderBy('id', 'desc')
+                ->first();
+
+            return response()->json([
+                'message' => 'Estatus actualizado e historial registrado con éxito.',
+                'status' => $nuevoEstado,
+                'log' => $ultimoLog
+            ], 200);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Ocurrió un error interno al procesar la actualización.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

@@ -147,4 +147,10 @@ class Pedido extends Model
     {
         return $this->hasMany(Guia::class, 'pedido_id');
     }
+
+    public function historialStatus()
+    {
+        // Apunta a la nueva tabla 'status' ordenada desde el cambio más reciente
+        return $this->hasMany(related: 'App\Models\Status', foreignKey: 'pedido_id')->orderBy('id', 'desc');
+    }
 }
