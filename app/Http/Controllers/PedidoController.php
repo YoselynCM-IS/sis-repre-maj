@@ -14,6 +14,7 @@ use App\Models\PedidoLog;
 use App\Models\CodigoPostal;
 use App\Models\Delegate;
 use App\Models\Guia;
+use App\Models\Status;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
@@ -742,8 +743,10 @@ class PedidoController extends Controller
     {
         // 1. Validar que los parámetros requeridos cumplan con las opciones estipuladas
         $request->validate([
-            'status' => 'required|in:PROCESO,ENTREGADO,CANCELADO',
+            'status' => 'required|in:PENDIENTE,EN PROCESO,SURTIDO,ENVIADO,ENTREGADO,CANCELADO,DEMORADO,PROBLEMAS DE ENVÍO',
             'comentarios' => 'required|string|max:1000',
+
+            
         ]);
 
         // 2. Buscar el pedido original o fallar si no existe
@@ -773,8 +776,8 @@ class PedidoController extends Controller
             DB::commit();
 
             // Recuperar el último registro insertado por si quieres pintarlo en un historial dinámico
-            $ultimoLog = DB::table('status')
-                ->where('pedido_id', $pedido->id)
+            $ultimoLog = Status::where('pedido_id', $pedido->id)
+                ->with('user')
                 ->orderBy('id', 'desc')
                 ->first();
 

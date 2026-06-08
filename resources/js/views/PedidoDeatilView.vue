@@ -529,9 +529,13 @@
                                 required 
                                 class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-black uppercase tracking-wider text-slate-700 focus:outline-none focus:border-red-600"
                             >
-                                <option value="PROCESO">EN PROCESO</option>
+                                <option value="EN PROCESO">EN PROCESO</option>
+                                <option value="SURTIDO">SURTIDO</option>
+                                <option value="ENVIADO">ENVIADO</option>
                                 <option value="ENTREGADO">ENTREGADO</option>
                                 <option value="CANCELADO">CANCELADO</option>
+                                <option value="DEMORADO">DEMORADO</option>
+                                <option value="PROBLEMAS DE ENVÍO">PROBLEMAS DE ENVÍO</option>
                             </select>
                         </div>
 
@@ -629,7 +633,7 @@ const submitStatusUpdate = async () => {
             pedido.value.historial_status.unshift({
                 id: response.data.log?.id || Date.now(),
                 user_id: user.value?.id,
-                user: { name: user.value?.name },
+                user: { full_name: response.data.log.user.full_name },
                 status: response.data.status || statusForm.value.status,
                 comentarios: statusForm.value.comentarios,
                 created_at: new Date().toISOString()
