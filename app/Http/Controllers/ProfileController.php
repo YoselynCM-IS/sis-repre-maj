@@ -121,7 +121,7 @@ class ProfileController extends Controller
 
                 return response()->json([
                     'message'  => 'Cuenta de delegado creada y vinculada',
-                    'delegate' => $delegate
+                    'delegate' => Delegate::where('user_id', $newUser->id)->with('user')->first()
                 ], 201);
             });
         } catch (\Exception $e) {
