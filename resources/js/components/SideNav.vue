@@ -89,7 +89,7 @@ const menuItems = [
   { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboardIcon },
   { label: 'Pedidos', to: '/pedidos', icon: ShoppingCartIcon },
   { label: 'Visitas', to: '/visitas', icon: UsersIcon },
-  { label: 'Capacitaciones', to: '/capacitaciones', icon: GraduationCapIcon },
+  // { label: 'Capacitaciones', to: '/capacitaciones', icon: GraduationCapIcon },
   { label: 'Gastos', to: '/gastos', icon: ReceiptIcon },
 ]
 

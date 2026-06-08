@@ -115,7 +115,7 @@ class VisitaController extends Controller
             'plantel.estado_id' => 'required|exists:estados,id',
             'plantel.telefono'  => 'required|string',
             'plantel.tel_oficina' => 'required|string',
-            'plantel.extension' => 'required|string',
+            // 'plantel.extension' => 'required|string',
             'plantel.email'     => 'required|email',
             'plantel.director'  => 'required|string',
             'plantel.foto_plantel' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
@@ -183,8 +183,8 @@ class VisitaController extends Controller
                     // SE AGREGA ALMACENAMIENTO DE BENEFICIOS ADICIONALES EN MAYÚSCULAS
                     'beneficios_adicionales' => strtoupper($request->input('plantel.beneficios_adicionales')),
                     'estado_id'       => $request->input('plantel.estado_id'),
-                    'latitud'         => $request->input('plantel.latitud'),
-                    'longitud'        => $request->input('plantel.longitud'),
+                    'latitud'         => $request->input('plantel.latitud') != 'null' ? $request->input('plantel.latitud'):null,
+                    'longitud'        => $request->input('plantel.longitud') != 'null' ? $request->input('plantel.longitud'):null,
                     'status'          => 'activo'
                 ]);
 
@@ -283,7 +283,7 @@ class VisitaController extends Controller
             });
         } catch (\Exception $e) {
             Log::error("Fallo en storePrimeraVisita: " . $e->getMessage());
-            return response()->json(['message' => 'Error técnico al procesar el alta.'], 500);
+            return response()->json(['message' => $e->getMessage()], 500);
         }
     }
 
@@ -441,7 +441,7 @@ class VisitaController extends Controller
                 'motivo_cambio'        => 'required|string|min:10',
                 'plantel'              => 'required|array',
                 'plantel.tel_oficina'  => 'required|string',
-                'plantel.extension'    => 'required|string',
+                // 'plantel.extension'    => 'required|string',
                 'plantel.beneficios_adicionales' => 'required|string|min:20',
                 'libros_interes'       => 'required|array',
                 // NUEVAS REGLAS AGREGADAS PARA EL CONTENEDOR INTERNO DE LIBROS DE INTERÉS EN EDIT

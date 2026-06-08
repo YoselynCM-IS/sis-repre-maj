@@ -73,10 +73,10 @@
                             <div class="flex items-center justify-between mb-4">
                                 <label class="text-[10px] font-black uppercase tracking-[0.2em]" 
                                        :class="attemptedSubmit && !form.plantel.latitud ? 'text-red-700' : 'text-blue-800'">
-                                    <i class="fas fa-map-marker-alt mr-1"></i> Ubicación Geográfica*
+                                    <i class="fas fa-map-marker-alt mr-1"></i> Ubicación Geográfica
                                 </label>
                                 <span v-if="form.plantel.latitud" class="text-[9px] bg-green-100 text-green-700 px-3 py-1 rounded-full font-black uppercase shadow-sm">✓ Coordenadas Capturadas</span>
-                                <span v-else-if="attemptedSubmit" class="text-[9px] bg-red-600 text-white px-3 py-1 rounded-full font-black uppercase animate-bounce">Requerido</span>
+                                <!-- <span v-else-if="attemptedSubmit" class="text-[9px] bg-red-600 text-white px-3 py-1 rounded-full font-black uppercase animate-bounce">Requerido</span> -->
                             </div>
                             <br>
                             <button type="button" @click="getLocation" class="btn-primary w-full py-4 rounded-2xl flex items-center justify-center gap-3 shadow-lg transition-all" 
@@ -90,7 +90,7 @@
                         </div>
 
                         <div class="seccion-foto-modulo-premium">
-                            <label style="font-size: 14px;"><strong>Fotografía del Plantel (Opcional)</strong></label>
+                            <label style="font-size: 14px;"><strong>Fotografía del Plantel</strong></label>
                             
                             <div class="contenedor-dropzone-foto">
                                 <input 
@@ -183,14 +183,13 @@
                                     </div>
                                 </div>
                                 <div class="form-group col-span-1">
-                                    <label class="label-style">Extensión *</label>
+                                    <label class="label-style">Extensión</label>
                                     <input 
                                         v-model="form.plantel.extension" 
                                         type="text" 
                                         class="form-input font-bold" 
                                         placeholder="Ext." 
                                         maxlength="6"
-                                        required
                                         :disabled="loading"
                                     >
                                 </div>
@@ -775,11 +774,11 @@ const handleSubmit = async () => {
         return;
     }
 
-    if (!form.plantel.latitud) {
-        errorMessage.value = "GPS OBLIGATORIO.";
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
-    }
+    // if (!form.plantel.latitud) {
+    //     errorMessage.value = "GPS OBLIGATORIO.";
+    //     window.scrollTo({ top: 0, behavior: 'smooth' });
+    //     return;
+    // }
 
     if (selectedInterestBooks.value.length === 0) {
         errorMessage.value = "AGREGUE AL MENOS UN MATERIAL DE INTERÉS.";
