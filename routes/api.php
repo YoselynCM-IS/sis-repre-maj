@@ -10,6 +10,7 @@ use App\Http\Controllers\GastoController;
 use App\Http\Controllers\VisitaController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RegimenFiscalController;
 
 
 // Rutas Públicas
@@ -77,5 +78,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/delegates', [ProfileController::class, 'addDelegate']);
         Route::delete('/delegates/{id}', [ProfileController::class, 'removeDelegate']);
     });
+
+    // REGIMENES FISCALES
+    Route::get('/regimenes-fiscales', [RegimenFiscalController::class, 'index']);
 
 });

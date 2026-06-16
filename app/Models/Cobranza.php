@@ -13,11 +13,22 @@ class Cobranza extends Model
         'metodo_pago',
         'responsable',
         'telefono',
-        'correo'
+        'correo',
+        'rfc',
+        'direccion',
+        'regimen_fiscal_id'
     ];
 
     public function cliente()
     {
         return $this->belongsTo(Cliente::class, 'cliente_id');
+    }
+
+    /**
+     * Obtiene el régimen fiscal asociado a esta información de cobranza.
+     */
+    public function regimenFiscal()
+    {
+        return $this->belongsTo(RegimenFiscal::class, 'regimen_fiscal_id');
     }
 }

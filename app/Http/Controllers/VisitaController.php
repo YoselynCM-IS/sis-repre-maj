@@ -130,6 +130,15 @@ class VisitaController extends Controller
             'visita.libros_interes.entregado'        => 'nullable|array',
             'visita.libros_interes.interes.*.beneficio_tipo'  => 'required|in:Precio especial,Descuento por libro',
             'visita.libros_interes.interes.*.beneficio_valor' => 'required|numeric|min:0',
+
+            // ── FRAGMENTO A AGREGAR: VALIDACIÓN CONDICIONAL DE COBRANZA ──
+            'cobranza.nombre'            => 'required_if:visita.resultado_visita,compra|nullable|string|max:150',
+            'cobranza.rfc'               => 'required_if:visita.resultado_visita,compra|nullable|string|max:13',
+            'cobranza.correo'            => 'required_if:visita.resultado_visita,compra|nullable|email',
+            'cobranza.telefono'          => 'required_if:visita.resultado_visita,compra|nullable|string|max:10',
+            'cobranza.direccion'         => 'required_if:visita.resultado_visita,compra|nullable|string',
+            'cobranza.metodo_pago'       => 'required_if:visita.resultado_visita,compra|nullable|string',
+            'cobranza.regimen_fiscal_id' => 'required_if:visita.resultado_visita,compra|nullable|exists:regimenes_fiscales,id',
         ]);
 
         try {
@@ -206,6 +215,20 @@ class VisitaController extends Controller
                     
                     // 5. Actualizar el registro del cliente en la Base de Datos
                     $cliente->update(['foto_plantel' => $pathFoto]);
+                }
+
+                // ── FRAGMENTO A AGREGAR: GUARDAR DATOS EN LA TABLA COBRANZAS ──
+                if ($request->input('visita.resultado_visita') === 'compra') {
+                    Cobranza::create([
+                        'cliente_id'        => $cliente->id,
+                        'responsable'       => strtoupper($request->input('cobranza.nombre')),
+                        'correo'            => strtolower($request->input('cobranza.correo')),
+                        'telefono'          => $request->input('cobranza.telefono'),
+                        'rfc'               => strtoupper($request->input('cobranza.rfc')),
+                        'direccion'         => strtoupper($request->input('cobranza.direccion')),
+                        'metodo_pago'       => $request->input('cobranza.metodo_pago'),
+                        'regimen_fiscal_id' => $request->input('cobranza.regimen_fiscal_id'),
+                    ]);
                 }
 
                 // // GUARDAR CLIENTE EN LA OTRA BASE DE DATOS
