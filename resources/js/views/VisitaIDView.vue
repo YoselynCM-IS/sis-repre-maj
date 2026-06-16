@@ -59,7 +59,6 @@
                                 <label class="label-style">Nombre del Plantel</label>
                                 <input v-model="form.plantel.name" type="text" class="form-input font-black bg-slate-50 border-slate-100 uppercase" disabled>
                             </div>
-
                         </div>
   
                         <div class="form-group mb-6">
@@ -67,8 +66,7 @@
                             <select v-model="form.plantel.estado_id" class="form-input font-bold bg-slate-50 border-slate-100 uppercase" disabled>
                                     <option v-for="e in estados" :key="e.id" :value="e.id">{{ e.estado }}</option>
                                 </select>
-                            <textarea v-model="form.plantel.direccion" class="form-input font-medium bg-slate-50 border-slate-100 uppercase lbb" rows="2" disabled></textarea>
-                            
+                            <textarea v-model="form.plantel.direccion" class="form-input font-medium bg-slate-50 border-slate-100 uppercase lbb" rows="2" disabled></textarea> 
                         </div>
                         <!-- CAMPO EDITABLE: DIRECTOR / COORDINADOR -->
                         <div class="form-group mt-6 p-6 bg-red-50/30 rounded-[2rem] border-2 border-red-100">
@@ -246,10 +244,9 @@
                             </div>
                         </div>
 
+                        <div v-if="form.visita.resultado_visita === 'seguimiento'" class="form-group mb-6 p-6 bg-orange-50 rounded-[2.5rem] border-2 border-orange-100 shadow-inner animate-fade-in lbb">
+                            <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
                         
-                            <div v-if="form.visita.resultado_visita === 'seguimiento'" class="form-group mb-6 p-6 bg-orange-50 rounded-[2.5rem] border-2 border-orange-100 shadow-inner animate-fade-in lbb">
-                               <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
-                         
                                 <label class="label-large mb-4 text-slate-600 font-black tracking-tighter uppercase">
                                     <i class="fas fa-eye mr-1 text-blue-500"></i> 6.  PROXIMO COMPROMISO
                                 </label>
@@ -262,11 +259,112 @@
                                     </select>
                                 </div>
                             </div>
+                        </div>
+                        <div v-if="form.visita.resultado_visita === 'compra'" class="form-group mb-6 p-6 bg-orange-50 rounded-[2.5rem] border-2 border-orange-100 animate-fade-in shadow-inner">
+                            <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
+                                
+                                <label class="label-mini mb-6 text-red-800 label-large font-black tracking-tighter block border-b border-slate-100 pb-3">
+                                    <i class="fas fa-box-open mr-1"></i> 6. DATOS PARA COBRANZA
+                                </label>     
 
+                                <div class="form-group mb-6 relative">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                        
+                                        <div class="form-group">
+                                            <label class="label-style mb-2 block">Nombre o Razón Social *</label>
+                                            <input 
+                                                type="text" 
+                                                v-model="form.cobranza.nombre" 
+                                                required 
+                                                class="form-input font-bold"
+                                                placeholder="EJ. JUAN PÉREZ O EMPRESA S.A."
+                                            />
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="label-style mb-2 block">RFC *</label>
+                                            <input 
+                                                type="text" 
+                                                v-model="form.cobranza.rfc" 
+                                                required 
+                                                maxlength="13"
+                                                class="form-input font-bold"
+                                                placeholder="EJ. XAXX010101000"
+                                            />
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="label-style mb-2 block">Correo Electrónico *</label>
+                                            <input 
+                                                type="email" 
+                                                v-model="form.cobranza.correo" 
+                                                required 
+                                                class="form-input font-bold"
+                                                style="text-transform: none !important;"
+                                                placeholder="ejemplo@correo.com"
+                                            />
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="label-style mb-2 block">Teléfono de Contacto *</label>
+                                            <input 
+                                                type="text" 
+                                                v-model="form.cobranza.telefono" 
+                                                required 
+                                                minlength="10" 
+                                                maxlength="10" 
+                                                class="form-input font-bold"
+                                                placeholder="MÁXIMO 10 DÍGITOS"
+                                            />
+                                        </div>
+
+                                        <div class="form-group md:col-span-2">
+                                            <label class="label-style mb-2 block">Dirección Fiscal Completa *</label>
+                                            <input 
+                                                type="text" 
+                                                v-model="form.cobranza.direccion" 
+                                                required 
+                                                class="form-input font-bold"
+                                                placeholder="CALLE, NÚMERO, COLONIA, C.P., ESTADO"
+                                            />
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="label-style mb-2 block">Método de Pago *</label>
+                                            <select 
+                                                v-model="form.cobranza.metodo_pago" 
+                                                required 
+                                                class="form-input font-black uppercase tracking-widest text-slate-700"
+                                            >
+                                                <option value="" disabled selected>SELECCIONE UNA OPCIÓN</option>
+                                                <option value="Deposito en efectivo">DEPOSITO EN EFECTIVO</option>
+                                                <option value="Transferencia">TRANSFERENCIA ELECTRONICA</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="label-style mb-2 block">Régimen Fiscal *</label>
+                                            <select 
+                                                v-model="form.cobranza.regimen_fiscal_id" 
+                                                required 
+                                                class="form-input font-black uppercase tracking-widest text-slate-700"
+                                            >
+                                                <option value="" disabled selected>SELECCIONE EL RÉGIMEN FISCAL</option>
+                                                <option 
+                                                    v-for="regimen in regimenesFiscales" 
+                                                    :key="regimen.id" 
+                                                    :value="regimen.id"
+                                                >
+                                                    {{ regimen.codigo }} - {{ regimen.descripcion.toUpperCase() }}
+                                                </option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-
                 <!-- BOTONES DE ACCIÓN -->
                 <div class="mt-10 flex flex-col md:flex-row justify-end gap-4 border-t border-slate-100 pt-8 pb-20">
                     <button type="button" @click="$router.push('/visitas')" class="btn-secondary px-10 py-4 uppercase font-bold text-xs tracking-widest bg-white border-2 border-slate-200 text-black rounded-2xl shadow-sm lbb" :disabled="loading">Cancelar</button>
@@ -336,6 +434,15 @@ let clientTimer = null;
 
 const form = reactive({
     plantel: { name: '', rfc: '', niveles: [], direccion: '', estado_id: '', telefono: '', email: '', director: '', latitud: null, longitud: null },
+    cobranza: {
+        nombre: '',
+        correo: '',
+        telefono: '',
+        rfc: '',
+        direccion: '',
+        metodo_pago: '',
+        regimen_fiscal_id: ''
+    },
     visita: { fecha: new Date().toISOString().split('T')[0], persona_entrevistada: '', cargo: 'Director/Coordinador', cargo_especifico: '', comentarios: '', resultado_visita: 'seguimiento', proxima_visita: '', proxima_accion: 'visita' }
 });
 
@@ -517,7 +624,8 @@ const handleSubmit = async () => {
             comentarios: form.visita.comentarios,
             resultado_visita: form.visita.resultado_visita,
             proxima_visita: form.visita.proxima_visita,
-            proxima_accion: form.visita.proxima_accion
+            proxima_accion: form.visita.proxima_accion,
+            cobranza: form.visita.resultado_visita === 'compra' ? { ...form.cobranza } : null
         };
         
         await axios.post('visitas/seguimiento', payload);
@@ -529,6 +637,18 @@ const handleSubmit = async () => {
 };
 
 const goToHistory = () => { showSuccessModal.value = false; router.push('/visitas'); };
+
+const regimenesFiscales = ref([])
+
+const fetchRegimenesFiscales = async () => {
+    try {
+        // Hacemos la petición a la nueva ruta dedicada de la API
+        const response = await axios.get('/regimenes-fiscales')
+        regimenesFiscales.value = response.data
+    } catch (error) {
+        console.error('Error al cargar los regímenes fiscales:', error)
+    }
+}
 
 const verificarPrecarga = async () => {
     const idParam = route.params.id;
@@ -545,12 +665,13 @@ onMounted(async () => {
     window.scrollTo({ top: 0, behavior: 'instant' });
     loadingInitial.value = true;
     try {
-        const [resEst, resNiv, resSer] = await Promise.all([
-            axios.get('estados'), axios.get('search/niveles'), axios.get('search/series')
+        const [resEst, resNiv, resSer, resReg] = await Promise.all([
+            axios.get('estados'), axios.get('search/niveles'), axios.get('search/series'), axios.get('/regimenes-fiscales')
         ]);
         estados.value = resEst.data;
         nivelesCatalog.value = resNiv.data;
         allSeries.value = resSer.data;
+        regimenesFiscales.value = resReg.data;
         await verificarPrecarga();
     } finally { 
         loadingInitial.value = false; 

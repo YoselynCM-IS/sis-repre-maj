@@ -323,6 +323,14 @@ class VisitaController extends Controller
             'cargo'                => 'required|string',
             'libros_interes'       => 'required', 
             'resultado_visita'     => 'required|in:seguimiento,compra,rechazo',
+            // ── FRAGMENTO A AGREGAR: VALIDACIÓN CONDICIONAL DE COBRANZA ──
+            'cobranza.nombre'            => 'required_if:resultado_visita,compra|nullable|string|max:150',
+            'cobranza.rfc'               => 'required_if:resultado_visita,compra|nullable|string|max:13',
+            'cobranza.correo'            => 'required_if:resultado_visita,compra|nullable|email',
+            'cobranza.telefono'          => 'required_if:resultado_visita,compra|nullable|string|max:10',
+            'cobranza.direccion'         => 'required_if:resultado_visita,compra|nullable|string',
+            'cobranza.metodo_pago'       => 'required_if:resultado_visita,compra|nullable|string',
+            'cobranza.regimen_fiscal_id' => 'required_if:resultado_visita,compra|nullable|exists:regimenes_fiscales,id',
         ]);
 
         try {
@@ -353,12 +361,22 @@ class VisitaController extends Controller
 
                 if ($validated['resultado_visita'] === 'compra') {
                     $cliente->update(['tipo' => 'CLIENTE']);
-                    \DB::connection('mysql_inventario')->table('clientes')
-                        ->where('id', $cliente->referencia_id)->update(['tipo' => 'CLIENTE']);
+                    Cobranza::create([
+                        'cliente_id'        => $cliente->id,
+                        'responsable'       => strtoupper($request->input('cobranza.nombre')),
+                        'correo'            => strtolower($request->input('cobranza.correo')),
+                        'telefono'          => $request->input('cobranza.telefono'),
+                        'rfc'               => strtoupper($request->input('cobranza.rfc')),
+                        'direccion'         => strtoupper($request->input('cobranza.direccion')),
+                        'metodo_pago'       => $request->input('cobranza.metodo_pago'),
+                        'regimen_fiscal_id' => $request->input('cobranza.regimen_fiscal_id'),
+                    ]);
+                    // \DB::connection('mysql_inventario')->table('clientes')
+                    //     ->where('id', $cliente->referencia_id)->update(['tipo' => 'CLIENTE']);
                 } elseif ($validated['resultado_visita'] === 'rechazo') {
                     $cliente->update(['status' => 'inactivo']);
-                    \DB::connection('mysql_inventario')->table('clientes')
-                        ->where('id', $cliente->referencia_id)->update(['status' => 'inactivo']);
+                    // \DB::connection('mysql_inventario')->table('clientes')
+                    //     ->where('id', $cliente->referencia_id)->update(['status' => 'inactivo']);
                 }
 
                 return response()->json(['message' => 'Seguimiento registrado correctamente.'], 201);
