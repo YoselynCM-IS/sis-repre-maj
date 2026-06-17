@@ -488,6 +488,16 @@ class VisitaController extends Controller
                 // NUEVAS REGLAS AGREGADAS PARA EL CONTENEDOR INTERNO DE LIBROS DE INTERÉS EN EDIT
                 'libros_interes.interes.*.beneficio_tipo'  => 'required|in:Precio especial,Descuento por libro',
                 'libros_interes.interes.*.beneficio_valor' => 'required|numeric|min:0',
+                'proxima_visita'       => 'nullable|date',
+                // ── FRAGMENTO A AGREGAR: VALIDACIÓN CONDICIONAL DE COBRANZA EN UPDATE ──
+                'cobranza.id'                => 'nullable',
+                'cobranza.nombre'            => 'required_if:resultado_visita,compra|nullable|string|max:150',
+                'cobranza.rfc'               => 'required_if:resultado_visita,compra|nullable|string|max:13',
+                'cobranza.correo'            => 'required_if:resultado_visita,compra|nullable|email',
+                'cobranza.telefono'          => 'required_if:resultado_visita,compra|nullable|string|max:10',
+                'cobranza.direccion'         => 'required_if:resultado_visita,compra|nullable|string',
+                'cobranza.metodo_pago'       => 'required_if:resultado_visita,compra|nullable|string',
+                'cobranza.regimen_fiscal_id' => 'required_if:resultado_visita,compra|nullable|exists:regimenes_fiscales,id',
             ]);
 
             return DB::transaction(function () use ($visita, $request) {
@@ -578,12 +588,36 @@ class VisitaController extends Controller
                 $visita->comentarios = strtoupper($request->comentarios);
                 $visita->resultado_visita = $request->resultado_visita;
                 $visita->libros_interes = $request->libros_interes; 
-                $visita->proxima_visita_estimada = $request->proxima_visita;
+                $visita->proxima_visita_estimada = !empty($request->proxima_visita) ? $request->proxima_visita : null;
                 
                 // Incrementar contador de seguridad
                 $visita->modificaciones_realizadas += 1;
 
                 $visita->save();
+
+                // ── FRAGMENTO A AGREGAR: ACTUALIZAR O CREAR REGISTRO DE COBRANZA ──
+                if ($request->input('resultado_visita') === 'compra' && $visita->cliente_id) {
+                    $cobranzaId = $request->input('cobranza.id');
+                    
+                    $datosCobranza = [
+                        'cliente_id'        => $visita->cliente_id,
+                        'responsable'       => strtoupper($request->input('cobranza.nombre')),
+                        'correo'            => strtolower($request->input('cobranza.correo')),
+                        'telefono'          => $request->input('cobranza.telefono'),
+                        'rfc'               => strtoupper($request->input('cobranza.rfc')),
+                        'direccion'         => strtoupper($request->input('cobranza.direccion')),
+                        'metodo_pago'       => $request->input('cobranza.metodo_pago'),
+                        'regimen_fiscal_id' => $request->input('cobranza.regimen_fiscal_id'),
+                    ];
+
+                    if (!empty($cobranzaId)) {
+                        // Si existe un ID previo, se actualiza ese registro específico
+                        Cobranza::where('id', $cobranzaId)->update($datosCobranza);
+                    } else {
+                        // Si no existe ID previo pero es una compra, se genera una nueva cobranza
+                        Cobranza::create($datosCobranza);
+                    }
+                }
 
                 return response()->json(['message' => 'Expediente actualizado y registrado en bitácora de auditoría.']);
             });

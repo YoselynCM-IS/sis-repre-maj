@@ -367,10 +367,9 @@
                                 <textarea v-model="form.plantel.beneficios_adicionales" class="form-input font-medium uppercase text-xs lbb" rows="4" required minlength="20" placeholder="ESPECIFIQUE LOS BENEFICIOS ACORDADOS CON EL PLANTEL..."></textarea>
                             </div>
                         </div>
-                        <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
-                          
-                                <!-- CAMPO DE PRÓXIMA ACCIÓN AGENDADA (NUEVO REQUISITO) -->
-                            <div v-if="form.visita.resultado_visita === 'seguimiento'" class="form-group mb-6 p-6 bg-orange-50 rounded-[2.5rem] border-2 border-orange-100 shadow-inner animate-fade-in lbb">
+                        <div v-if="form.visita.resultado_visita === 'seguimiento'" class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
+                            <!-- CAMPO DE PRÓXIMA ACCIÓN AGENDADA (NUEVO REQUISITO) -->
+                            <div class="form-group mb-6 p-6 bg-orange-50 rounded-[2.5rem] border-2 border-orange-100 shadow-inner animate-fade-in lbb">
                                <label class="label-large">7. PROXIMO COMPROMISO</label>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lbb">
                                     <div>
@@ -383,6 +382,109 @@
                                             <option value="visita">Visita de Seguimiento</option>
                                             <option value="presentacion">Presentación Académica</option>
                                         </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div v-if="form.visita.resultado_visita === 'compra'" class="form-group mb-6 p-6 bg-orange-50 rounded-[2.5rem] border-2 border-orange-100 animate-fade-in shadow-inner">
+                            <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
+                                
+                                <label class="label-mini mb-6 text-red-800 label-large font-black tracking-tighter block border-b border-slate-100 pb-3">
+                                    <i class="fas fa-box-open mr-1"></i> 7. DATOS PARA COBRANZA
+                                </label>     
+
+                                <div class="form-group mb-6 relative">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                        
+                                        <div class="form-group">
+                                            <label class="label-style mb-2 block">Nombre o Razón Social *</label>
+                                            <input 
+                                                type="text" 
+                                                v-model="form.cobranza.nombre" 
+                                                required 
+                                                class="form-input font-bold"
+                                                placeholder="EJ. JUAN PÉREZ O EMPRESA S.A."
+                                            />
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="label-style mb-2 block">RFC *</label>
+                                            <input 
+                                                type="text" 
+                                                v-model="form.cobranza.rfc" 
+                                                required 
+                                                maxlength="13"
+                                                class="form-input font-bold"
+                                                placeholder="EJ. XAXX010101000"
+                                            />
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="label-style mb-2 block">Correo Electrónico *</label>
+                                            <input 
+                                                type="email" 
+                                                v-model="form.cobranza.correo" 
+                                                required 
+                                                class="form-input font-bold"
+                                                style="text-transform: none !important;"
+                                                placeholder="ejemplo@correo.com"
+                                            />
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="label-style mb-2 block">Teléfono de Contacto *</label>
+                                            <input 
+                                                type="text" 
+                                                v-model="form.cobranza.telefono" 
+                                                required 
+                                                minlength="10" 
+                                                maxlength="10" 
+                                                class="form-input font-bold"
+                                                placeholder="MÁXIMO 10 DÍGITOS"
+                                            />
+                                        </div>
+
+                                        <div class="form-group md:col-span-2">
+                                            <label class="label-style mb-2 block">Dirección Fiscal Completa *</label>
+                                            <input 
+                                                type="text" 
+                                                v-model="form.cobranza.direccion" 
+                                                required 
+                                                class="form-input font-bold"
+                                                placeholder="CALLE, NÚMERO, COLONIA, C.P., ESTADO"
+                                            />
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="label-style mb-2 block">Método de Pago *</label>
+                                            <select 
+                                                v-model="form.cobranza.metodo_pago" 
+                                                required 
+                                                class="form-input font-black uppercase tracking-widest text-slate-700"
+                                            >
+                                                <option value="" disabled selected>SELECCIONE UNA OPCIÓN</option>
+                                                <option value="Deposito en efectivo">DEPOSITO EN EFECTIVO</option>
+                                                <option value="Transferencia">TRANSFERENCIA ELECTRONICA</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="label-style mb-2 block">Régimen Fiscal *</label>
+                                            <select 
+                                                v-model="form.cobranza.regimen_fiscal_id" 
+                                                required 
+                                                class="form-input font-black uppercase tracking-widest text-slate-700"
+                                            >
+                                                <option value="" disabled selected>SELECCIONE EL RÉGIMEN FISCAL</option>
+                                                <option 
+                                                    v-for="regimen in regimenesFiscales" 
+                                                    :key="regimen.id" 
+                                                    :value="regimen.id"
+                                                >
+                                                    {{ regimen.codigo }} - {{ regimen.descripcion.toUpperCase() }}
+                                                </option>
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -528,6 +630,8 @@ watch(isFormBlockedByDuplicates, (val) => {
 
 let bookTimer = null;
 
+const regimenesFiscales = ref([])
+
 const form = reactive({
     plantel: { 
         name: '', 
@@ -554,6 +658,16 @@ const form = reactive({
         proxima_visita: '',
         proxima_accion: 'visita'
     },
+    cobranza: {
+        id: '',
+        nombre: '',
+        correo: '',
+        telefono: '',
+        rfc: '',
+        direccion: '',
+        metodo_pago: '',
+        regimen_fiscal_id: ''
+    },
     motivo_cambio: ''
 });
 
@@ -565,17 +679,19 @@ const isLocked = computed(() => {
 const fetchInitialData = async () => {
     loadingInitial.value = true;
     try {
-        const [resEst, resNiv, resSer, resVis] = await Promise.all([
+        const [resEst, resNiv, resSer, resVis, resReg] = await Promise.all([
             axios.get('/estados'),
             axios.get('/search/niveles'),
             axios.get('/search/series'),
-            axios.get(`/visitas/${id}`)
+            axios.get(`/visitas/${id}`),
+            axios.get('/regimenes-fiscales')
         ]);
 
         estados.value = resEst.data;
         nivelesCatalog.value = resNiv.data;
         allSeries.value = resSer.data;
         visita.value = resVis.data;
+        regimenesFiscales.value = resReg.data;
 
         // Hidratar Datos del Plantel
         form.plantel.name = (visita.value.nombre_plantel || visita.value.cliente?.name || '').toUpperCase();
@@ -626,6 +742,19 @@ const fetchInitialData = async () => {
         const materiales = parseMateriales(visita.value.libros_interes);
         selectedInterestBooks.value = materiales.interes || [];
         selectedDeliveredBooks.value = materiales.entregado || [];
+
+        // ── FRAGMENTO A AGREGAR: HIDRATAR DATOS DE COBRANZA PARA EDICIÓN ──
+        const listaCobranzas = visita.value.cliente?.cobranzas || [];
+        const cobranzaData = listaCobranzas.length > 0 ? listaCobranzas[listaCobranzas.length - 1] : {};
+
+        form.cobranza.id                = cobranzaData.id || '';
+        form.cobranza.nombre            = (cobranzaData.responsable || '').toUpperCase();
+        form.cobranza.correo            = (cobranzaData.correo || '').toLowerCase();
+        form.cobranza.telefono          = cobranzaData.telefono || '';
+        form.cobranza.rfc               = (cobranzaData.rfc || '').toUpperCase();
+        form.cobranza.direccion         = (cobranzaData.direccion || '').toUpperCase();
+        form.cobranza.metodo_pago       = cobranzaData.metodo_pago || '';
+        form.cobranza.regimen_fiscal_id = cobranzaData.regimen_fiscal_id || '';
 
     } catch (e) {
         console.error("Error cargando expediente:", e);
@@ -794,7 +923,8 @@ const handleSubmit = async () => {
             libros_interes: {
                 interes: selectedInterestBooks.value,
                 entregado: selectedDeliveredBooks.value
-            }
+            },
+            cobranza: form.visita.resultado_visita === 'compra' ? { ...form.cobranza } : null
         };
 
         // Creamos un contenedor FormData para que viaje todo junto (Datos planos + Foto Binaria)
