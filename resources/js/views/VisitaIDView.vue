@@ -359,6 +359,24 @@
                                                 </option>
                                             </select>
                                         </div>
+
+                                        <div class="form-group">
+                                            <label class="label-style mb-2 block">Uso de CFDI *</label>
+                                            <select 
+                                                v-model="form.cobranza.uso_cfdi_id" 
+                                                required 
+                                                class="form-input font-black uppercase tracking-widest text-slate-700"
+                                            >
+                                                <option value="" disabled selected>SELECCIONE EL USO DE CFDI</option>
+                                                <option 
+                                                    v-for="uso in usosCfdiCatalog" 
+                                                    :key="uso.id" 
+                                                    :value="uso.id"
+                                                >
+                                                    {{ uso.c_UsoCFDI }} - {{ uso.descripcion.toUpperCase() }}
+                                                </option>
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -441,7 +459,9 @@ const form = reactive({
         rfc: '',
         direccion: '',
         metodo_pago: '',
-        regimen_fiscal_id: ''
+        regimen_fiscal_id: '',
+        uso_cfdi_id: ''
+
     },
     visita: { fecha: new Date().toISOString().split('T')[0], persona_entrevistada: '', cargo: 'Director/Coordinador', cargo_especifico: '', comentarios: '', resultado_visita: 'seguimiento', proxima_visita: '', proxima_accion: 'visita' }
 });
@@ -638,17 +658,8 @@ const handleSubmit = async () => {
 
 const goToHistory = () => { showSuccessModal.value = false; router.push('/visitas'); };
 
-const regimenesFiscales = ref([])
-
-const fetchRegimenesFiscales = async () => {
-    try {
-        // Hacemos la petición a la nueva ruta dedicada de la API
-        const response = await axios.get('/regimenes-fiscales')
-        regimenesFiscales.value = response.data
-    } catch (error) {
-        console.error('Error al cargar los regímenes fiscales:', error)
-    }
-}
+const regimenesFiscales = ref([]);
+const usosCfdiCatalog = ref([]);
 
 const verificarPrecarga = async () => {
     const idParam = route.params.id;
@@ -665,13 +676,14 @@ onMounted(async () => {
     window.scrollTo({ top: 0, behavior: 'instant' });
     loadingInitial.value = true;
     try {
-        const [resEst, resNiv, resSer, resReg] = await Promise.all([
-            axios.get('estados'), axios.get('search/niveles'), axios.get('search/series'), axios.get('/regimenes-fiscales')
+        const [resEst, resNiv, resSer, resReg, resUsos] = await Promise.all([
+            axios.get('estados'), axios.get('search/niveles'), axios.get('search/series'), axios.get('/regimenes-fiscales'), axios.get('/usos-cfdi')
         ]);
         estados.value = resEst.data;
         nivelesCatalog.value = resNiv.data;
         allSeries.value = resSer.data;
         regimenesFiscales.value = resReg.data;
+        usosCfdiCatalog.value = resUsos.data;
         await verificarPrecarga();
     } finally { 
         loadingInitial.value = false; 
