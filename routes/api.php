@@ -81,5 +81,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // REGIMENES FISCALES
     Route::get('/regimenes-fiscales', [RegimenFiscalController::class, 'index']);
+    Route::get('/usos-cfdi', [RegimenFiscalController::class, 'getUsosCfdi']);
 
 });

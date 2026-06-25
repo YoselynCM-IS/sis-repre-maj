@@ -593,6 +593,24 @@
                                             </select>
                                         </div>
 
+                                        <div class="form-group">
+                                            <label class="label-style mb-2 block">Uso de CFDI *</label>
+                                            <select 
+                                                v-model="form.cobranza.uso_cfdi_id" 
+                                                required 
+                                                class="form-input font-black uppercase tracking-widest text-slate-700"
+                                            >
+                                                <option value="" disabled selected>SELECCIONE EL USO DE CFDI</option>
+                                                <option 
+                                                    v-for="uso in usosCfdiCatalog" 
+                                                    :key="uso.id" 
+                                                    :value="uso.id"
+                                                >
+                                                    {{ uso.c_UsoCFDI }} - {{ uso.descripcion.toUpperCase() }}
+                                                </option>
+                                            </select>
+                                        </div>
+
                                     </div>
                                 </div>
 
@@ -700,22 +718,8 @@ const deliveredInput = reactive({ titulo: '' });
 
 let bookTimer = null;
 
-const regimenesFiscales = ref([])
-
-const fetchRegimenesFiscales = async () => {
-    try {
-        // Hacemos la petición a la nueva ruta dedicada de la API
-        const response = await axios.get('/regimenes-fiscales')
-        regimenesFiscales.value = response.data
-    } catch (error) {
-        console.error('Error al cargar los regímenes fiscales:', error)
-    }
-}
-
-onMounted(async () => {
-    // Se ejecuta al cargar el componente
-    await fetchRegimenesFiscales()
-})
+const regimenesFiscales = ref([]);
+const usosCfdiCatalog = ref([]);
 
 const form = reactive({
     plantel: {
@@ -750,7 +754,8 @@ const form = reactive({
         rfc: '',
         direccion: '',
         metodo_pago: '',
-        regimen_fiscal_id: ''
+        regimen_fiscal_id: '',
+        uso_cfdi_id: ''
     }
 });
 
@@ -831,12 +836,15 @@ watch(() => fieldValidation.telefono.error, (val) => checkStates.phone.isDuplica
 const fetchInitialData = async () => {
     loadingInitial.value = true;
     try {
-        const [resEst, resNiv, resSer] = await Promise.all([
-            axios.get('/estados'), axios.get('/search/niveles'), axios.get('/search/series')
+        const [resEst, resNiv, resSer, resReg, resUsos] = await Promise.all([
+            axios.get('/estados'), axios.get('/search/niveles'), axios.get('/search/series'),
+            axios.get('/regimenes-fiscales'), axios.get('/usos-cfdi')
         ]);
         estados.value = resEst.data;
         nivelesCatalog.value = resNiv.data;
         allSeries.value = resSer.data;
+        regimenesFiscales.value = resReg.data;
+        usosCfdiCatalog.value = resUsos.data;
     } catch (e) { console.error(e); } finally { loadingInitial.value = false; }
 };
 
@@ -983,6 +991,7 @@ const handleSubmit = async () => {
             formData.append('cobranza[direccion]', form.cobranza.direccion);
             formData.append('cobranza[metodo_pago]', form.cobranza.metodo_pago);
             formData.append('cobranza[regimen_fiscal_id]', form.cobranza.regimen_fiscal_id);
+            formData.append('cobranza[uso_cfdi_id]', form.cobranza.uso_cfdi_id);
         }
         
         // CORRECCIÓN AQUÍ: Se mapean uno a uno de vuelta a un array iterable para que Laravel lo acepte como array normal.

@@ -1,20 +1,31 @@
 <?php
 
-namespace App\Models;
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-
-class RegimenFiscal extends Model
+return new class extends Migration
 {
-    use HasFactory;
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('regimenes_fiscales', function (Blueprint $table) {
+            $table->id();
+            // Código numérico o alfanumérico del régimen (ej. "601", "603")
+            $table->string('codigo')->unique();
+            // Descripción oficial del régimen fiscal
+            $table->string('descripcion');
+            $table->timestamps();
+        });
+    }
 
-    // Especificamos explícitamente el nombre de la tabla en español
-    protected $table = 'regimenes_fiscales';
-
-    // Atributos asignables de forma masiva
-    protected $fillable = [
-        'codigo',
-        'descripcion',
-    ];
-}
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('regimenes_fiscales');
+    }
+};

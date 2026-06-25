@@ -16,7 +16,8 @@ class Cobranza extends Model
         'correo',
         'rfc',
         'direccion',
-        'regimen_fiscal_id'
+        'regimen_fiscal_id', 
+        'uso_cfdi_id'
     ];
 
     public function cliente()
