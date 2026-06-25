@@ -485,6 +485,24 @@
                                                 </option>
                                             </select>
                                         </div>
+
+                                        <div class="form-group">
+                                            <label class="label-style mb-2 block">Uso de CFDI *</label>
+                                            <select 
+                                                v-model="form.cobranza.uso_cfdi_id" 
+                                                required 
+                                                class="form-input font-black uppercase tracking-widest text-slate-700"
+                                            >
+                                                <option value="" disabled selected>SELECCIONE EL USO DE CFDI</option>
+                                                <option 
+                                                    v-for="uso in usosCfdiCatalog" 
+                                                    :key="uso.id" 
+                                                    :value="uso.id"
+                                                >
+                                                    {{ uso.c_UsoCFDI }} - {{ uso.descripcion.toUpperCase() }}
+                                                </option>
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -630,7 +648,8 @@ watch(isFormBlockedByDuplicates, (val) => {
 
 let bookTimer = null;
 
-const regimenesFiscales = ref([])
+const regimenesFiscales = ref([]);
+const usosCfdiCatalog = ref([]);
 
 const form = reactive({
     plantel: { 
@@ -666,7 +685,8 @@ const form = reactive({
         rfc: '',
         direccion: '',
         metodo_pago: '',
-        regimen_fiscal_id: ''
+        regimen_fiscal_id: '',
+        uso_cfdi_id: ''
     },
     motivo_cambio: ''
 });
@@ -679,12 +699,13 @@ const isLocked = computed(() => {
 const fetchInitialData = async () => {
     loadingInitial.value = true;
     try {
-        const [resEst, resNiv, resSer, resVis, resReg] = await Promise.all([
+        const [resEst, resNiv, resSer, resVis, resReg, resUsos] = await Promise.all([
             axios.get('/estados'),
             axios.get('/search/niveles'),
             axios.get('/search/series'),
             axios.get(`/visitas/${id}`),
-            axios.get('/regimenes-fiscales')
+            axios.get('/regimenes-fiscales'), 
+            axios.get('/usos-cfdi')
         ]);
 
         estados.value = resEst.data;
@@ -692,6 +713,7 @@ const fetchInitialData = async () => {
         allSeries.value = resSer.data;
         visita.value = resVis.data;
         regimenesFiscales.value = resReg.data;
+        usosCfdiCatalog.value = resUsos.data;
 
         // Hidratar Datos del Plantel
         form.plantel.name = (visita.value.nombre_plantel || visita.value.cliente?.name || '').toUpperCase();
@@ -755,6 +777,7 @@ const fetchInitialData = async () => {
         form.cobranza.direccion         = (cobranzaData.direccion || '').toUpperCase();
         form.cobranza.metodo_pago       = cobranzaData.metodo_pago || '';
         form.cobranza.regimen_fiscal_id = cobranzaData.regimen_fiscal_id || '';
+        form.cobranza.uso_cfdi_id       = cobranzaData.uso_cfdi_id || '';
 
     } catch (e) {
         console.error("Error cargando expediente:", e);
