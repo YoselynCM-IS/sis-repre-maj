@@ -469,6 +469,20 @@
                                         </div>
 
                                         <div class="form-group">
+                                            <label class="label-style mb-2 block">Tipo de Pago *</label>
+                                            <select 
+                                                v-model="form.cobranza.tipo_pago" 
+                                                required 
+                                                class="form-input font-black uppercase tracking-widest text-slate-700"
+                                            >
+                                                <option value="" disabled selected>SELECCIONE UNA OPCIÓN</option>
+                                                <option value="pago cie">PAGO CIE</option>
+                                                <option value="venta directa">VENTA DIRECTA</option>
+                                                <option value="escuela">ESCUELA</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="form-group">
                                             <label class="label-style mb-2 block">Régimen Fiscal *</label>
                                             <select 
                                                 v-model="form.cobranza.regimen_fiscal_id" 
@@ -685,6 +699,7 @@ const form = reactive({
         rfc: '',
         direccion: '',
         metodo_pago: '',
+        tipo_pago: '',
         regimen_fiscal_id: '',
         uso_cfdi_id: ''
     },
@@ -776,6 +791,7 @@ const fetchInitialData = async () => {
         form.cobranza.rfc               = (cobranzaData.rfc || '').toUpperCase();
         form.cobranza.direccion         = (cobranzaData.direccion || '').toUpperCase();
         form.cobranza.metodo_pago       = cobranzaData.metodo_pago || '';
+        form.cobranza.tipo_pago       = cobranzaData.tipo_pago || '';
         form.cobranza.regimen_fiscal_id = cobranzaData.regimen_fiscal_id || '';
         form.cobranza.uso_cfdi_id       = cobranzaData.uso_cfdi_id || '';
 
