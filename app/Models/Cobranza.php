@@ -11,6 +11,7 @@ class Cobranza extends Model
     protected $fillable = [
         'cliente_id',
         'metodo_pago',
+        'tipo_pago',
         'responsable',
         'telefono',
         'correo',
