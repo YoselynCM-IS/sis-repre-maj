@@ -334,6 +334,7 @@ class VisitaController extends Controller
             'cobranza.telefono'          => 'required_if:resultado_visita,compra|nullable|string|max:10',
             'cobranza.direccion'         => 'required_if:resultado_visita,compra|nullable|string',
             'cobranza.metodo_pago'       => 'required_if:resultado_visita,compra|nullable|string',
+            'cobranza.tipo_pago'         => 'required_if:resultado_visita,compra|nullable|string',
             'cobranza.regimen_fiscal_id' => 'required_if:resultado_visita,compra|nullable|exists:regimenes_fiscales,id',
             'cobranza.uso_cfdi_id'       => 'required_if:resultado_visita,compra|nullable|exists:usos_cfdi,id',
         ]);
@@ -374,6 +375,7 @@ class VisitaController extends Controller
                         'rfc'               => strtoupper($request->input('cobranza.rfc')),
                         'direccion'         => strtoupper($request->input('cobranza.direccion')),
                         'metodo_pago'       => $request->input('cobranza.metodo_pago'),
+                        'tipo_pago'       => $request->input('cobranza.tipo_pago'),
                         'regimen_fiscal_id' => $request->input('cobranza.regimen_fiscal_id'),
                         'uso_cfdi_id'       => $request->input('cobranza.uso_cfdi_id'),
                     ]);
