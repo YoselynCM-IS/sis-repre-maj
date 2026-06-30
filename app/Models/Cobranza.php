@@ -21,6 +21,8 @@ class Cobranza extends Model
         'uso_cfdi_id'
     ];
 
+    protected $guarded = [];
+
     public function cliente()
     {
         return $this->belongsTo(Cliente::class, 'cliente_id');
@@ -32,5 +34,10 @@ class Cobranza extends Model
     public function regimenFiscal()
     {
         return $this->belongsTo(RegimenFiscal::class, 'regimen_fiscal_id');
+    }
+
+    public function usoCfdi()
+    {
+        return $this->belongsTo(UsosCfdi::class, 'uso_cfdi_id');
     }
 }

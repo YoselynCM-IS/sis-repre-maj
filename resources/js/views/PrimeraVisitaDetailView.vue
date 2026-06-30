@@ -139,62 +139,67 @@
                                     v-if="visita?.cliente?.tipo === 'CLIENTE'" 
                                     type="button"
                                     @click="openCobranzaModal"
-                                    class="btn-secondary flex items-center gap-2 shrink-0 !border-slate-300 hover:bg-slate-50 transition-colors"
-                                >
-                                    <i class="fas" :class="visita.cliente?.cobranza ? 'fa-edit text-amber-600' : 'fa-plus-circle text-green-600'"></i>
-                                    {{ visita.cliente?.cobranza ? 'EDITAR INFORMACIÓN' : 'AÑADIR INFORMACIÓN' }}
+                                    class="btn-secondary flex items-center gap-2 shrink-0 !border-slate-300 hover:bg-slate-50 transition-colors mb-2"
+                                > AÑADIR INFORMACIÓN
                                 </button>
 
-                                
-                                <div class="info-card grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 pl-4">
-                                    <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
-                                        <table class="min-width-full divide-y divide-gray-200 responsive-table">
-                                            <thead class="bg-gray-100 hidden md:table-header-group">
-                                                <tr>
-                                                    <th class="table-header">N.</th>
-                                                    <th class="table-header">Método de pago</th>
-                                                    <th class="table-header">Responsable</th>
-                                                    <th class="table-header">Teléfono</th>
-                                                    <th class="table-header">Correo</th>
-                                                    <th class="table-header">Creado el</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody class="bg-white bk divide-y divide-gray-100 block md:table-row-group">
-                                                <tr v-for="(item, index) in visita.cliente.cobranzas" :key="item.id" class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                                                    <td class="table-cell text-left md:text-center block md:table-cell">
-                                                        <span class="status-badge bg-blue-50 text-blue-700 border border-blue-100">
-                                                            {{ index + 1 }}
-                                                        </span>
-                                                    </td>
-                                                    <td class="table-cell block md:table-cell">
-                                                        <div class="text-sm font-bold text-gray-800 uppercase leading-tight">
-                                                            {{ item.metodo_pago }}
-                                                        </div>
-                                                    </td>
-                                                    <td class="table-cell block md:table-cell">
-                                                        <div class="text-sm font-bold text-gray-800 uppercase leading-tight">
-                                                            {{ item.responsable || '—' }}
-                                                        </div>
-                                                    </td>
-                                                    <td class="table-cell block md:table-cell">
-                                                        <div class="text-sm font-bold text-gray-800 uppercase leading-tight">
-                                                            {{ item.telefono || '—' }}
-                                                        </div>
-                                                    </td>
-                                                    <td class="table-cell block md:table-cell">
-                                                        <div class="text-sm font-bold text-gray-800 uppercase leading-tight">
-                                                            {{ item.correo || '—' }}
-                                                        </div>
-                                                    </td>
-                                                    <td class="table-cell block md:table-cell">
-                                                        <div class="text-sm font-bold text-gray-800 uppercase leading-tight">
-                                                            {{ item.created_at ? new Date(item.created_at).toLocaleDateString('es-MX', { year: 'numeric', month: '2-digit', day: '2-digit' }) : '—' }}
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
+                                    <table class="min-width-full divide-y divide-gray-200 responsive-table">
+                                        <thead class="bg-gray-100 hidden md:table-header-group">
+                                            <tr>
+                                                <th class="table-header">N.</th>
+                                                <th class="table-header">Nombre o razón social</th>
+                                                <th class="table-header">RFC</th>
+                                                <th class="table-header">Correo</th>
+                                                <th class="table-header">Teléfono de contacto</th>
+                                                <th class="table-header">Creado el</th>
+                                                <th class="table-header text-center">Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white bk divide-y divide-gray-100 block md:table-row-group">
+                                            <tr v-for="(item, index) in visita.cliente.cobranzas" :key="item.id" class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                                                <td class="table-cell text-left md:text-center block md:table-cell">
+                                                    <span class="status-badge bg-blue-50 text-blue-700 border border-blue-100">
+                                                        {{ index + 1 }}
+                                                    </span>
+                                                </td>
+                                                <td class="table-cell block md:table-cell">
+                                                    <div class="text-sm font-bold text-gray-800 uppercase leading-tight">
+                                                        {{ item.responsable || '—' }}
+                                                    </div>
+                                                </td>
+                                                <td class="table-cell block md:table-cell">
+                                                    <div class="text-sm font-bold text-gray-800 uppercase leading-tight">
+                                                        {{ item.rfc }}
+                                                    </div>
+                                                </td>
+                                                <td class="table-cell block md:table-cell">
+                                                    <div class="text-sm font-bold text-gray-800 uppercase leading-tight">
+                                                        {{ item.correo || '—' }}
+                                                    </div>
+                                                </td>
+                                                <td class="table-cell block md:table-cell">
+                                                    <div class="text-sm font-bold text-gray-800 uppercase leading-tight">
+                                                        {{ item.telefono || '—' }}
+                                                    </div>
+                                                </td>
+                                                <td class="table-cell block md:table-cell">
+                                                    <div class="text-sm font-bold text-gray-800 uppercase leading-tight">
+                                                        {{ item.created_at ? new Date(item.created_at).toLocaleDateString('es-MX', { year: 'numeric', month: '2-digit', day: '2-digit' }) : '—' }}
+                                                    </div>
+                                                </td>
+                                                <td class="table-cell text-left md:text-center block md:table-cell">
+                                                    <button 
+                                                        @click="abrirDetalleCobranza(item)"
+                                                        type="button"
+                                                        class="btn-secondary flex items-center gap-2 shrink-0 !border-slate-300 hover:bg-slate-50 transition-colors"
+                                                    >
+                                                        <i class="fas fa-eye mr-1"></i> Detalle
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
@@ -496,62 +501,241 @@
                 </div>
             </div>
 
-            <div v-if="showCobranzaModal" class="custom-modal-backdrop">
-                <div class="custom-modal-window bg-white border-t-8 border-t-red-700 shadow-premium">
-                    
-                    <div class="custom-modal-content">
-                        
-                        <div class="flex justify-between items-center bg-white pb-4 mb-6 border-b border-slate-100">
-                            <div class="flex items-center gap-3">
-                                <div class="w-2 h-7 bg-red-700 rounded-full"></div>
-                                <h3 class="text-sm md:text-base font-black text-black uppercase tracking-wider m-0">
-                                    <i class="fas fa-handholding-usd text-red-700 mr-1"></i> Datos de Cobranza
+            <div v-if="addCobranzaModal" class="custom-modal-backdrop" style="overflow-y: auto !important; padding: 20px 10px; display: flex; align-items: start; justify-content: center;">
+                <div class="custom-modal-window bg-white border-t-8 border-t-red-700 shadow-premium" style="max-width: 55% !important; margin: auto; height: auto !important;">
+                    <div class="custom-modal-content">       
+                        <div class="bg-white rounded-[2rem] shadow-2xl border border-slate-100 max-w-2xl p-6 md:p-8 transform transition-all relative" style="width: 100% !important; max-width: 100% !important;">
+                            <div class="flex justify-between items-center border-b pb-4 mb-6">
+                                <h3 class="text-lg font-black text-slate-900 uppercase tracking-tight" style="color: #0f172a !important;">
+                                    <i class="fas fa-file-invoice-dollar text-red-700 mr-2"></i> Datos para cobranza
                                 </h3>
                             </div>
+                            <form @submit.prevent="saveCobranza">
+                                <div class="form-group mb-6 relative">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                        
+                                        <div class="form-group">
+                                            <label class="label-style mb-2 block">Nombre o Razón Social *</label>
+                                            <input 
+                                                type="text" 
+                                                v-model="form.cobranza.nombre" 
+                                                required 
+                                                class="form-input font-bold"
+                                                placeholder="EJ. JUAN PÉREZ O EMPRESA S.A."
+                                            />
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="label-style mb-2 block">RFC *</label>
+                                            <input 
+                                                type="text" 
+                                                v-model="form.cobranza.rfc" 
+                                                required 
+                                                maxlength="13"
+                                                class="form-input font-bold"
+                                                placeholder="EJ. XAXX010101000"
+                                            />
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="label-style mb-2 block">Correo Electrónico *</label>
+                                            <input 
+                                                type="email" 
+                                                v-model="form.cobranza.correo" 
+                                                required 
+                                                class="form-input font-bold"
+                                                style="text-transform: none !important;"
+                                                placeholder="ejemplo@correo.com"
+                                            />
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="label-style mb-2 block">Teléfono de Contacto *</label>
+                                            <input 
+                                                type="text" 
+                                                v-model="form.cobranza.telefono" 
+                                                required 
+                                                minlength="10" 
+                                                maxlength="10" 
+                                                class="form-input font-bold"
+                                                placeholder="MÁXIMO 10 DÍGITOS"
+                                            />
+                                        </div>
+
+                                        <div class="form-group md:col-span-2">
+                                            <label class="label-style mb-2 block">Dirección Fiscal Completa *</label>
+                                            <input 
+                                                type="text" 
+                                                v-model="form.cobranza.direccion" 
+                                                required 
+                                                class="form-input font-bold"
+                                                placeholder="CALLE, NÚMERO, COLONIA, C.P., ESTADO"
+                                            />
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="label-style mb-2 block">Método de Pago *</label>
+                                            <select 
+                                                v-model="form.cobranza.metodo_pago" 
+                                                required 
+                                                class="form-input font-black uppercase tracking-widest text-slate-700"
+                                            >
+                                                <option value="" disabled selected>SELECCIONE UNA OPCIÓN</option>
+                                                <option value="Deposito en efectivo">DEPOSITO EN EFECTIVO</option>
+                                                <option value="Transferencia">TRANSFERENCIA ELECTRONICA</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="label-style mb-2 block">Tipo de Pago *</label>
+                                            <select 
+                                                v-model="form.cobranza.tipo_pago" 
+                                                required 
+                                                class="form-input font-black uppercase tracking-widest text-slate-700"
+                                            >
+                                                <option value="" disabled selected>SELECCIONE UNA OPCIÓN</option>
+                                                <option value="pago cie">PAGO CIE</option>
+                                                <option value="venta directa">VENTA DIRECTA</option>
+                                                <option value="escuela">ESCUELA</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="label-style mb-2 block">Régimen Fiscal *</label>
+                                            <select 
+                                                v-model="form.cobranza.regimen_fiscal_id" 
+                                                required 
+                                                class="form-input font-black uppercase tracking-widest text-slate-700"
+                                            >
+                                                <option value="" disabled selected>SELECCIONE EL RÉGIMEN FISCAL</option>
+                                                <option 
+                                                    v-for="regimen in regimenesFiscales" 
+                                                    :key="regimen.id" 
+                                                    :value="regimen.id"
+                                                >
+                                                    {{ regimen.codigo }} - {{ regimen.descripcion.toUpperCase() }}
+                                                </option>
+                                            </select>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="label-style mb-2 block">Uso de CFDI *</label>
+                                            <select 
+                                                v-model="form.cobranza.uso_cfdi_id" 
+                                                required 
+                                                class="form-input font-black uppercase tracking-widest text-slate-700"
+                                            >
+                                                <option value="" disabled selected>SELECCIONE EL USO DE CFDI</option>
+                                                <option 
+                                                    v-for="uso in usosCfdiCatalog" 
+                                                    :key="uso.id" 
+                                                    :value="uso.id"
+                                                >
+                                                    {{ uso.c_UsoCFDI }} - {{ uso.descripcion.toUpperCase() }}
+                                                </option>
+                                            </select>
+                                        </div>
+
+                                    </div>
+                                </div>
+                                <div class="mt-8 pt-4 border-t flex justify-end">
+                                    <button 
+                                        @click="addCobranzaModal = false" 
+                                        type="button" 
+                                        class="btn-secondary flex items-center gap-2 shrink-0 !border-slate-300 hover:bg-slate-50 transition-colors"
+                                    > Cancelar
+                                    </button>
+                                    
+                                    <button 
+                                        type="submit" 
+                                        :disabled="savingCobranza"
+                                        class="btn-primary px-20 py-4 shadow-xl shadow-red-900/10 transition-all active:scale-95"
+                                    >
+                                        <i v-if="savingCobranza" class="fas fa-spinner animate-spin"></i>
+                                        {{ savingCobranza ? 'Guardando...' : 'Guardar Información' }}
+                                    </button>
+                                </div>
+                            </form>
                         </div>
-
-                        <form @submit.prevent="submitCobranza" class="space-y-6 m-0 bg-white">
-                            <div class="form-group">
-                                <label class="label-large mb-2 block">Método de Pago *</label>
-                                <select 
-                                    v-model="cobranzaForm.metodo_pago" 
-                                    required 
-                                    class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-black uppercase tracking-wider text-slate-700 focus:outline-none focus:border-red-600"
-                                >
-                                    <option value="Pago de CIE">Pago de CIE</option>
-                                    <option value="Venta directa">Venta directa</option>
-                                    <option value="Escuela">Escuela</option>
-                                </select>
-                            </div>
-
-                            <div v-if="cobranzaForm.metodo_pago === 'Escuela'" class="space-y-5 pt-5 border-t border-dashed border-slate-200 animate-fade-in">
-                                <div class="form-group">
-                                    <label class="label-large mb-2 block">Nombre del Responsable *</label>
-                                    <input type="text" v-model="cobranzaForm.responsable" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-bold uppercase text-slate-800 focus:outline-none focus:border-red-600"/>
-                                </div>
-                                <div class="form-group">
-                                    <label class="label-large mb-2 block">Teléfono de Contacto *</label>
-                                    <input type="text" v-model="cobranzaForm.telefono" required minlength="10" maxlength="10" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-bold font-mono text-slate-800 focus:outline-none focus:border-red-600"/>
-                                </div>
-                                <div class="form-group">
-                                    <label class="label-large mb-2 block">Correo Electrónico *</label>
-                                    <input type="email" v-model="cobranzaForm.correo" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-bold text-slate-800 focus:outline-none focus:border-red-600" style="text-transform: none !important;"/>
-                                </div>
-                            </div>
-
-                            <div class="custom-modal-buttons pt-5 border-t border-slate-100">
-                                <button type="button" @click="closeCobranzaModal" class="btn-secondary modal-btn text-xs font-black uppercase tracking-widest text-center">
-                                    Cancelar
-                                </button>
-                                <button type="submit" :disabled="savingCobranza" class="btn-primary-action modal-btn text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2">
-                                    <i v-if="savingCobranza" class="fas fa-circle-notch fa-spin"></i>
-                                    <i v-else class="fas fa-save"></i>
-                                    {{ savingCobranza ? 'GUARDANDO...' : 'GUARDAR' }}
-                                </button>
-                            </div>
-                        </form>
                     </div>
+                </div>
+            </div>
 
+            <div v-if="showCobranzaModal" class="custom-modal-backdrop" style="overflow-y: auto !important; padding: 20px 10px; display: flex; align-items: start; justify-content: center;">
+                <div class="custom-modal-window bg-white border-t-8 border-t-red-700 shadow-premium" style="max-width: 55% !important; margin: auto; height: auto !important;">
+                    <div class="custom-modal-content">       
+                        <div class="bg-white rounded-[2rem] shadow-2xl border border-slate-100 max-w-2xl p-6 md:p-8 transform transition-all relative" style="width: 100% !important; max-width: 100% !important;">
+                            <div class="flex justify-between items-center border-b pb-4 mb-6">
+                                <h3 class="text-lg font-black text-slate-900 uppercase tracking-tight" style="color: #0f172a !important;">
+                                    <i class="fas fa-file-invoice-dollar text-red-700 mr-2"></i> Información Completa de Cobranza
+                                </h3>
+                            </div>
+
+                            <div v-if="selectedCobranza" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="label-large">Responsable / Razón Social</label>
+                                    <p class="text-sm font-bold text-slate-800 uppercase mt-0.5">{{ selectedCobranza.responsable || '—' }}</p>
+                                </div>
+                                <div>
+                                    <label class="label-large">RFC</label>
+                                    <p class="text-sm font-bold text-slate-800 uppercase mt-0.5">{{ selectedCobranza.rfc || '—' }}</p>
+                                </div>
+                                <div>
+                                    <label class="label-large">Correo electrónico</label>
+                                    <p class="text-sm font-bold text-slate-800 mt-0.5">{{ selectedCobranza.correo || '—' }}</p>
+                                </div>
+                                <div>
+                                    <label class="label-large">Teléfono</label>
+                                    <p class="text-sm font-bold text-slate-800 mt-0.5">{{ selectedCobranza.telefono || '—' }}</p>
+                                </div>
+                                <div>
+                                    <label class="label-large">Método de Pago</label>
+                                    <p class="text-sm font-bold text-slate-800 uppercase mt-0.5">{{ selectedCobranza.metodo_pago || '—' }}</p>
+                                </div>
+                                <div>
+                                    <label class="label-large">Tipo de Pago</label>
+                                    <p class="text-sm font-bold text-slate-800 uppercase mt-0.5">
+                                        <span v-if="selectedCobranza.tipo_pago" class="px-2 py-0.5 bg-slate-100 text-slate-800 rounded text-xs">
+                                            {{ selectedCobranza.tipo_pago }}
+                                        </span>
+                                        <span v-else>—</span>
+                                    </p>
+                                </div>
+                                <div>
+                                    <label class="label-large">Régimen Fiscal</label>
+                                    <p class="text-sm font-bold text-slate-800 mt-0.5">
+                                        {{ selectedCobranza.regimen_fiscal.codigo }} - {{ selectedCobranza.regimen_fiscal.descripcion.toUpperCase() }}
+                                    </p>
+                                </div>
+                                <div>
+                                    <label class="label-large">Uso de CFDI (ID)</label>
+                                    <p class="text-sm font-bold text-slate-800 mt-0.5">
+                                        {{ selectedCobranza.uso_cfdi.c_UsoCFDI }} - {{ selectedCobranza.uso_cfdi.descripcion.toUpperCase() }}
+                                    </p>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="label-large">Dirección Fiscal</label>
+                                    <p class="text-sm font-bold text-slate-800 uppercase mt-0.5">{{ selectedCobranza.direccion || '—' }}</p>
+                                </div>
+                                <div>
+                                    <label class="label-large">Fecha de registro</label>
+                                    <p class="text-sm font-bold text-slate-800 mt-0.5">
+                                        {{ selectedCobranza.created_at ? new Date(selectedCobranza.created_at).toLocaleString('es-MX') : '—' }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="mt-8 pt-4 border-t flex justify-end">
+                                <button 
+                                    @click="showCobranzaModal = false" 
+                                    type="button" 
+                                    class="btn-secondary flex items-center gap-2 shrink-0 !border-slate-300 hover:bg-slate-50 transition-colors"
+                                >
+                                    Cerrar Ventana
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -559,8 +743,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, reactive, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import Swal from 'sweetalert2';
 import axios from '../axios';
 
 const route = useRoute();
@@ -572,60 +757,122 @@ const loadingHistory = ref(true);
 const error = ref(null);
 const expandedId = ref(null);
 
-// ==========================================================================
-// ESTADO Y MÉTODOS DEL MODAL DE COBRANZA (NUEVO CONTROL MANTENIENDO TU MAQUETA)
-// ==========================================================================
+const addCobranzaModal = ref(false);
 const showCobranzaModal = ref(false);
-const savingCobranza = ref(false);
-const cobranzaForm = ref({
-    metodo_pago: 'Pago de CIE',
-    responsable: '',
-    telefono: '',
-    correo: ''
+const selectedCobranza = ref(null);
+
+const regimenesFiscales = ref([]);
+const usosCfdiCatalog = ref([]);
+
+const form = reactive({
+    cliente_id: null,
+    cobranza: {
+        id: null,
+        nombre: '',
+        correo: '',
+        telefono: '',
+        rfc: '',
+        direccion: '',
+        metodo_pago: '',
+        tipo_pago: '',
+        regimen_fiscal_id: '',
+        uso_cfdi_id: ''
+    }
 });
 
-const openCobranzaModal = () => {
-    if (visita.value?.cliente?.cobranza) {
-        // Precargar datos si ya existen registrados
-        cobranzaForm.value = {
-            metodo_pago: visita.value.cliente.cobranza.metodo_pago || 'Pago de CIE',
-            responsable: visita.value.cliente.cobranza.responsable || '',
-            telefono: visita.value.cliente.cobranza.telefono || '',
-            correo: visita.value.cliente.cobranza.correo || ''
-        };
-    } else {
-        // Resetear formulario
-        cobranzaForm.value = { metodo_pago: 'Pago de CIE', responsable: '', telefono: '', correo: '' };
-    }
-    showCobranzaModal.value = true;
-    document.body.style.overflow = 'hidden';
-};
+const savingCobranza = ref(false);
 
-const closeCobranzaModal = () => {
-    showCobranzaModal.value = false;
-    document.body.style.overflow = 'auto';
-};
+const openCobranzaModal = async () => {
+    // 1. Asignamos el cliente_id desde la información de la visita actual
+    form.cliente_id = visita.value?.cliente_id || visita.value?.cliente?.id || null;
+    
+    // 2. CORRECCIÓN: Inicializamos usando los nombres exactos que usan tus v-model en el HTML
+    form.cobranza = {
+        id: visita.value?.cobranza?.id || null,
+        nombre: visita.value?.cobranza?.responsable || '', // v-model="form.cobranza.nombre"
+        correo: visita.value?.cobranza?.correo || '',       // v-model="form.cobranza.correo"
+        telefono: visita.value?.cobranza?.telefono || '',   // v-model="form.cobranza.telefono"
+        rfc: visita.value?.cobranza?.rfc || '',             // v-model="form.cobranza.rfc"
+        direccion: visita.value?.cobranza?.direccion || '', // v-model="form.cobranza.direccion"
+        metodo_pago: visita.value?.cobranza?.metodo_pago || '', // v-model="form.cobranza.metodo_pago"
+        tipo_pago: visita.value?.cobranza?.tipo_pago || '',     // v-model="form.cobranza.tipo_pago"
+        regimen_fiscal_id: visita.value?.cobranza?.regimen_fiscal_id || '', // v-model="form.cobranza.regimen_fiscal_id"
+        uso_cfdi_id: visita.value?.cobranza?.uso_cfdi_id || ''             // v-model="form.cobranza.uso_cfdi_id"
+    };
 
-const submitCobranza = async () => {
-    if (!visita.value?.cliente_id) return;
-    savingCobranza.value = true;
+    // 3. Mostramos el modal inmediatamente
+    addCobranzaModal.value = true;
+
+    // 4. Cargamos los catálogos desde la base de datos de manera asíncrona
     try {
-        const response = await axios.post(`/clientes/${visita.value.cliente_id}/cobranza`, cobranzaForm.value);
-        
-        if (visita.value && visita.value.cliente) {
-            // Se asegura de que la variable exista como un arreglo antes de insertar
-            if (!visita.value.cliente.cobranzas) {
-                visita.value.cliente.cobranzas = [];
+        const [resRegimenes, resUsos] = await Promise.all([
+            axios.get('/regimenes-fiscales'),
+            axios.get('/usos-cfdi')
+        ]);
+
+        regimenesFiscales.value = resRegimenes.data;
+        usosCfdiCatalog.value = resUsos.data;
+    } catch (error) {
+        console.error("Error al cargar los catálogos de cobranza:", error);
+    }
+};
+
+
+// FUNCIÓN PARA GUARDAR DATOS DE COBRANZA ──
+const saveCobranza = async () => {
+    // Evitamos enviar si ya se está procesando o si no hay un cliente_id válido
+    if (savingCobranza.value) return;
+    if (!form.cliente_id) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error de validación',
+            text: 'No se encontró un ID de cliente asociado a esta visita.'
+        });
+        return;
+    }
+
+    savingCobranza.value = true;
+
+    try {
+        // Enviamos los datos reactivos del formulario al backend
+        const response = await axios.post('/cobranzas', form);
+
+        if (response.data) {
+            Swal.fire({
+                icon: 'success',
+                title: '¡Guardado con éxito!',
+                text: 'La información de cobranza se ha registrado correctamente.',
+                timer: 2000,
+                showConfirmButton: false
+            });
+
+            // Actualizamos el objeto local de la visita para que los cambios se reflejen
+            // en tu otro modal (el de visualización) inmediatamente.
+            if (visita.value) {
+                visita.value.cobranza = response.data.cobranza || response.data;
             }
-            // Agrega el nuevo registro de cobranza al listado
-            visita.value.cliente.cobranzas.unshift(response.data.cobranza);
+
+            // Cerramos el modal de captura
+            addCobranzaModal.value = false;
         }
-        closeCobranzaModal();
-    } catch (err) {
-        alert(err.response?.data?.message || "Error al registrar la información de cobranza.");
+    } catch (error) {
+        console.error("Error al guardar la información de cobranza:", error);
+        
+        // Manejo de errores dinámico (por si el RFC ya existe u otra validación del servidor)
+        const mensajeError = error.response?.data?.message || 'Ocurrió un error al intentar guardar los datos.';
+        Swal.fire({
+            icon: 'error',
+            title: 'Error al guardar',
+            text: mensajeError
+        });
     } finally {
         savingCobranza.value = false;
     }
+};
+
+const abrirDetalleCobranza = (cobranza) => {
+    selectedCobranza.value = cobranza;
+    showCobranzaModal.value = true;
 };
 
 const fetchVisitaDetail = async () => {

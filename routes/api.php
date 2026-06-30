@@ -64,7 +64,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/search/prospectos', [SearchController::class, 'searchProspectos']);
     Route::get('/clientes/{cliente_id}/historial', [VisitaController::class, 'historialPorCliente']);
     Route::put('/visitas/{id}', [VisitaController::class, 'update']); 
-    Route::post('/clientes/{clienteId}/cobranza', [VisitaController::class, 'storeCobranza']);
+    Route::post('/cobranzas', [VisitaController::class, 'storeCobranza']);
     
     // --- SECCIÓN DE PERFIL ---
     Route::prefix('profile')->group(function () {

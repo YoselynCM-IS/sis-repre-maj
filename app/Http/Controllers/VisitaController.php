@@ -412,7 +412,9 @@ class VisitaController extends Controller
             $visita = Visita::where('id', $id)
                 ->where('user_id', $ownerId)
                 // Carga de relación cobranza agregada de manera limpia
-                ->with(['cliente.cobranzas', 'estado', 'logs.user'])
+                ->with(['cliente.cobranzas' => function($query) {
+                    $query->with(['regimenFiscal', 'usoCfdi']);
+                }, 'estado', 'logs.user']) 
                 ->first();
 
             if (!$visita) {
@@ -429,31 +431,73 @@ class VisitaController extends Controller
         }
     }
 
-    // NUEVO MÉTODO QUIRÚRGICO PARA GUARDAR O ACTUALIZAR LA COBRANZA DESDE EL MODAL
-    // REEMPLAZA COMPLETAMENTE TU MÉTODO storeCobranza POR ESTE:
-    public function storeCobranza(Request $request, $clienteId)
+    public function storeCobranza(Request $request)
     {
+        // 1. Validaciones estrictas del formulario
+        $validated = $request->validate([
+            'cliente_id'                  => 'required|integer|exists:clientes,id',
+            'cobranza.nombre'             => 'required|string|max:255',
+            'cobranza.correo'             => 'required|email|max:255',
+            'cobranza.telefono'           => 'required|string|digits:10', // Fuerza exactamente 10 dígitos numéricos
+            'cobranza.rfc'                => [
+                'required',
+                'string',
+                'min:12',
+                'max:13' // Expresión regular oficial del SAT para RFC
+            ],
+            'cobranza.direccion'          => 'required|string|max:500',
+            'cobranza.metodo_pago'        => 'required|string|in:Deposito en efectivo,Transferencia',
+            'cobranza.tipo_pago'          => 'required|string|in:pago cie,venta directa,escuela',
+            'cobranza.regimen_fiscal_id'  => 'required|integer|exists:regimenes_fiscales,id', // Revisa si tu tabla se llama así
+            'cobranza.uso_cfdi_id'        => 'required|integer|exists:usos_cfdi,id',       // Revisa si tu tabla se llama así
+        ], [
+            // Mensajes de error personalizados en español
+            'cobranza.rfc.regex'          => 'El formato del RFC no es válido ante el SAT.',
+            'cobranza.telefono.digits'    => 'El teléfono debe contener exactamente 10 dígitos numéricos.',
+            'exists'                      => 'El elemento seleccionado no es válido o no existe en los catálogos.'
+        ]);
+
         try {
-            $validated = $request->validate([
-                'metodo_pago' => 'required|in:Pago de CIE,Venta directa,Escuela',
-                'responsable' => 'required_if:metodo_pago,Escuela|nullable|string|max:255',
-                'telefono'    => 'required_if:metodo_pago,Escuela|nullable|string|max:255',
-                'correo'      => 'required_if:metodo_pago,Escuela|nullable|email|max:255',
-            ]);
+            $cobranza = DB::transaction(function () use ($request) {
+                $clienteId = $request->input('cliente_id');
 
-            // Se cambia updateOrCreate por create para permitir múltiples cobranzas
-            $cobranza = Cobranza::create([
-                'cliente_id'  => $clienteId,
-                'metodo_pago' => $request->metodo_pago,
-                'responsable' => $request->metodo_pago === 'Escuela' ? strtoupper($request->responsable) : null,
-                'telefono'    => $request->metodo_pago === 'Escuela' ? $request->telefono : null,
-                'correo'      => $request->metodo_pago === 'Escuela' ? strtolower($request->correo) : null,
-            ]);
+                $cobranzaExistente = new Cobranza();
+                $cobranzaExistente->cliente_id = $clienteId;
 
-            return response()->json(['message' => 'Información de cobranza registrada exitosamente.', 'cobranza' => $cobranza]);
+                // 2. Asignación MANUAL directa campo por campo (Esto ignora cualquier bloqueo de Laravel)
+                $cobranzaExistente->responsable       = strtoupper($request->input('cobranza.nombre'));
+                $cobranzaExistente->correo            = strtolower($request->input('cobranza.correo'));
+                $cobranzaExistente->telefono          = $request->input('cobranza.telefono');
+                $cobranzaExistente->rfc               = strtoupper($request->input('cobranza.rfc'));
+                $cobranzaExistente->direccion         = strtoupper($request->input('cobranza.direccion'));
+                $cobranzaExistente->metodo_pago       = $request->input('cobranza.metodo_pago');
+                $cobranzaExistente->tipo_pago         = $request->input('cobranza.tipo_pago');
+                $cobranzaExistente->regimen_fiscal_id = $request->input('cobranza.regimen_fiscal_id');
+                $cobranzaExistente->uso_cfdi_id       = $request->input('cobranza.uso_cfdi_id');
+
+                // 3. Guardamos los cambios en la base de datos
+                $cobranzaExistente->save();
+
+                return $cobranzaExistente;
+            });
+
+            // 4. Cargamos las relaciones para Vue
+            $cobranza->load(['regimenFiscal', 'usoCfdi']);
+
+            // 5. Respuesta exitosa
+            return response()->json([
+                'success'  => true,
+                'message'  => 'Información de cobranza procesada con éxito.',
+                'cobranza' => $cobranza
+            ], 200);
+
         } catch (\Exception $e) {
-            Log::error("Error guardando cobranza para cliente {$clienteId}: " . $e->getMessage());
-            return response()->json(['message' => 'Error al procesar la información de cobranza.'], 500);
+            // Si algo falla a nivel servidor o base de datos, capturamos el error
+            return response()->json([
+                'success' => false,
+                'message' => 'Hubo un problema al guardar los datos en el servidor.',
+                'error'   => $e->getMessage()
+            ], 500);
         }
     }
 
