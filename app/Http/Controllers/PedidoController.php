@@ -162,7 +162,7 @@ class PedidoController extends Controller
     {
         try {
             $user = $request->user();
-            $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
+            // $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
 
             $pedido = Pedido::with(['cliente', 'detalles.libro', 'receptor', 'logs.user', 'guias', 'historialStatus.user']) 
                         ->where('id', $id)

@@ -197,13 +197,13 @@ class GastoController extends Controller
     public function show(Request $request, $id)
     {
         try {
-            $user = $request->user();
-            if (!$user) return response()->json(['message' => 'No autenticado'], 401);
+            // $user = $request->user();
+            // if (!$user) return response()->json(['message' => 'No autenticado'], 401);
 
-            $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
+            // $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
             
             $gasto = Gasto::where('id', $id)
-                        ->where('user_id', $ownerId)
+                        // ->where('user_id', $ownerId)
                         ->with(['comprobantes', 'logs.user'])
                         ->first();
 

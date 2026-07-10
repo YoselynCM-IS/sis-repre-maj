@@ -403,15 +403,15 @@ class VisitaController extends Controller
     public function show(Request $request, $id)
     {
         try {
-            $user = $request->user();
-            if (!$user) {
-                return response()->json(['message' => 'Sesión expirada.'], 401);
-            }
+            // $user = $request->user();
+            // if (!$user) {
+            //     return response()->json(['message' => 'Sesión expirada.'], 401);
+            // }
 
-            $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
+            // $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
 
             $visita = Visita::where('id', $id)
-                ->where('user_id', $ownerId)
+                // ->where('user_id', $ownerId)
                 // Carga de relación cobranza agregada de manera limpia
                 ->with(['cliente.cobranzas' => function($query) {
                     $query->with(['regimenFiscal', 'usoCfdi']);
