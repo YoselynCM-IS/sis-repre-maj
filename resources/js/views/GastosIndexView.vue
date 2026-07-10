@@ -89,6 +89,7 @@
                 
                 <td class="table-cell table-cell-bold text-slate-700 block md:table-cell" data-label="FECHA">
                     {{ formatDate(gasto.fecha) }}
+                    <br><label v-if="currentUserRole !== 'promotor'" style="color:gray; font-size:9px">{{ gasto.user.full_name }}</label>
                 </td>
 
                 <td class="table-cell block md:table-cell" data-label="PAQUETE DE GASTOS">
@@ -169,6 +170,8 @@ const error = ref(null);
 const currentPage = ref(1);
 const lastPage = ref(1);
 const totalPedidos = ref(0);
+
+const currentUserRole = ref('');
 
 const filters = reactive({
     search: '',
@@ -293,7 +296,18 @@ const formatCurrency = (value) => {
     return Number(value).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 };
 
-onMounted(fetchGastos);
+onMounted(async () => {
+    await fetchGastos();
+    
+    try {
+        const response = await axios.get('/user');
+        if (response.data && response.data.role) {
+            currentUserRole.value = response.data.role;
+        }
+    } catch (err) {
+        console.warn("No se pudo recuperar el rol del usuario desde el servidor directamente.");
+    }
+});
 </script>
 
 <style scoped>

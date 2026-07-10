@@ -13,6 +13,7 @@ use App\Models\Comprobante;
 use App\Models\User;
 use Carbon\Carbon;
 use App\Models\GastoLog;
+use App\Models\Delegate;
 use Spatie\Dropbox\Client as DropboxClient;
 
 class GastoController extends Controller
@@ -31,18 +32,26 @@ class GastoController extends Controller
 
             if (!$user) return response()->json(['message' => 'No autenticado'], 401);
             
-
+ 
             // Iniciamos el query con la relación de comprobantes
-            $query = Gasto::with('comprobantes');
-
-            /**
-             * Lógica de Roles:
-             * Si el rol NO es 'representante', filtramos por su ID (promotor, etc.)
-             * Si el rol ES 'representante', no entra al IF y trae todos los registros.
-             */
-            if ($user->role !== 'representante') {
+            $query = Gasto::with('comprobantes', 'user');
+            if ($user->role === 'representante') {
                 $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
-                $query->where('user_id', $ownerId);
+                
+                // Obtener los IDs de los usuarios promotores asignados a este representante
+                $promotoresIds = Delegate::where('representative_id', $ownerId)
+                                    ->pluck('user_id')
+                                    ->toArray();
+
+                // Combinar el ID del representante con los IDs de sus promotores
+                $userIdsPermitidos = array_merge([$ownerId], $promotoresIds);
+
+                // El representante ve las visitas de todo su equipo
+                $query->whereIn('user_id', $userIdsPermitidos);
+            }
+           if ($user->role === 'promotor') {
+                // SI ES CUALQUIER OTRO ROL (COMO PROMOTOR/DELEGADO), SOLO VE SUS PROPIAS VISITAS
+                $query->where('user_id', $user->id);
             }
 
             if ($request->filled('fecha_desde') && $request->filled('fecha_hasta')) {
