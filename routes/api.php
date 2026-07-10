@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\PedidoController; 
 use App\Http\Controllers\SearchController;
@@ -29,6 +30,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dashboard/stats', [DashboardController::class, 'getStats']);
     
     // Pedidos
+    // ── RUTA PARA DESCARGAR PEDIDOS FILTRADOS ──
+    Route::post('/pedidos/descargar', [PedidoController::class, 'descargarPedidos']);
     Route::get('/pedidos/ultima-paqueteria', [PedidoController::class, 'getUltimaPaqueteria']);
     Route::get('/pedidos', [PedidoController::class, 'index']); 
     Route::post('/pedidos', [PedidoController::class, 'store']);
@@ -38,6 +41,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('pedidos/store-guia', [PedidoController::class, 'storeGuia']); 
     // Ruta exclusiva para actualizar el estatus de un pedido e insertar en el historial
     Route::post('/pedidos/{id}/update-status', [PedidoController::class, 'updateStatus']);
+
+    Route::delete('/pedidos/limpiar-descarga/{name}', function($name) {
+        // Borra el archivo temporal del servidor una vez usado
+        if (Storage::disk('public')->exists('downloads/' . $name)) {
+            Storage::disk('public')->delete('downloads/' . $name);
+        }
+        return response()->json(['success' => true]);
+    });
 
     // Gastos
     Route::get('/gastos', [GastoController::class, 'index']); 

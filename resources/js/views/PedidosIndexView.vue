@@ -52,13 +52,25 @@
                             <option value="baja">BAJA</option>
                         </select>
                     </div>
-
+                </div>
+                <div class="filter-grid">
                     <div class="form-group flex items-end gap-2 md:col-span-4 lg:col-span-1">
                         <button @click="fetchPedidos" class="btn-primary flex-1 h-[42px] flex items-center justify-center gap-2">
                             <i class="fas fa-sync-alt"></i> Buscar
                         </button>
-                        <button v-if="hasFilters" @click="resetFilters" class="btn-secondary h-[42px] px-4 rounded-xl border-2 border-slate-100 text-slate-400 hover:text-red-600 transition-colors" title="Limpiar Filtros">
+                    </div>
+                    <div class="form-group flex items-end gap-2 md:col-span-4 lg:col-span-1">
+                        <button :disabled="!hasFilters" @click="resetFilters" class="btn-secondary h-[42px] px-4 rounded-xl border-2 border-slate-100 text-slate-400 hover:text-red-600 transition-colors" title="Limpiar Filtros">
                             <i class="fas fa-eraser"></i>Limpiar filtro
+                        </button>
+                    </div>
+                    <div></div>
+                    <div class="form-group flex items-end gap-2 md:col-span-4 lg:col-span-1">
+                        <button @click="descargarPedidos"
+                            :disabled="!canDownload"
+                            type="button"
+                            class="btn-primary flex-1 h-[42px] flex items-center justify-center gap-2">
+                            Descargar
                         </button>
                     </div>
                 </div>
@@ -291,6 +303,43 @@ const filteredPedidos = computed(() => {
         return matchesSearch && matchesStatus && matchesPriority;
     });
 });
+
+// ── FRAGMENTO A AGREGAR: VALIDACIÓN Y FUNCIÓN DE DESCARGA ──
+const canDownload = computed(() => {
+    // El botón se habilitará ÚNICAMENTE si el estado seleccionado es 'PENDIENTE'
+    return filters.status === 'PENDIENTE';
+});
+
+const descargarPedidos = async () => {
+    if (!canDownload.value) return;
+
+    try {
+        // 1. Enviamos de forma segura por POST los filtros bajo tu Autenticación actual
+        const response = await axios.post('/pedidos/descargar', {
+            status: 'PENDIENTE',
+            priority: filters.priority || null
+        });
+
+        if (response.data.success && response.data.download_url) {
+            // 2. Creamos un trigger de descarga con la URL que nos fabricó el servidor
+            const link = document.createElement('a');
+            link.href = response.data.download_url;
+            link.setAttribute('download', response.data.file_name);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // 3. Opcional: Le decimos al servidor que borre el archivo temporal para no ocupar espacio
+            setTimeout(async () => {
+                await axios.delete(`/pedidos/limpiar-descarga/${response.data.file_name}`);
+            }, 5000); // Espera 5 segundos a que termine de bajar y lo elimina
+        }
+
+    } catch (error) {
+        console.error("Error al procesar el archivo en el servidor:", error);
+        alert("Hubo un error al generar el reporte en el servidor.");
+    }
+};
 
 const resetFilters = () => {
     filters.search = '';

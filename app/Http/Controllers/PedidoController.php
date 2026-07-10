@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Spatie\Dropbox\Client as DropboxClient;
+use Illuminate\Support\Facades\Storage;
 
 class PedidoController extends Controller
 {
@@ -794,5 +795,101 @@ class PedidoController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    public function descargarPedidos(Request $request)
+    {
+        // 1. Validar filtros
+        $request->validate([
+            'status'   => 'required|string|in:PENDIENTE',
+            'priority' => 'nullable|string',
+        ]);
+
+        // 2. Consulta y cruce de tablas
+        $query = Pedido::query();
+        $query->where('status', $request->input('status'));
+
+        if ($request->filled('priority')) {
+            $query->where('prioridad', $request->input('priority'));
+        }
+
+        $pedidos = $query->with(['detalles.libro'])->orderBy('created_at', 'desc')->get();
+
+        // 3. Definición de los 27 encabezados exactos
+        $headers = [
+            'Clave', 'Cliente', 'Fecha de elaboración', 'Su pedido', 'Clave del artículo',
+            'Cantidad', 'Precio', 'Desc. 1', 'Desc. 2', 'Desc. 3', 'Clave de vendedor',
+            'Comisión', 'Clave de esquema de impuestos', 'Impuesto 1', 'Impuesto 2',
+            'Impuesto 3', 'Impuesto 4', 'Impuesto 5', 'Impuesto 6', 'Impuesto 7',
+            'Impuesto 8', 'Observaciones', 'Observaciones de partida', 'Fecha de entrega',
+            'Fecha de vencimiento', 'Número de moneda', 'Tipo de cambio'
+        ];
+
+        // 4. Construcción del archivo en formato XML Nativo de Excel con Estilos
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+        $xml .= '<?mso-application progid="Excel.Sheet"?>' . "\n";
+        $xml .= '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:html="http://www.w3.org/TR/REC-html40">' . "\n";
+        
+        // --- DEFINICIÓN DE ESTILOS ---
+        $xml .= '  <Styles>' . "\n";
+        $xml .= '    <Style ss:ID="headerStyle">' . "\n";
+        $xml .= '      <Font ss:Bold="1"/>' . "\n"; // Esto activa las negritas para el encabezado
+        $xml .= '    </Style>' . "\n";
+        $xml .= '  </Styles>' . "\n";
+        
+        $xml .= '  <Worksheet ss:Name="Pedidos Pendientes">' . "\n";
+        $xml .= '    <Table>' . "\n";
+
+        // --- FILA 1: Encabezados (Le aplicamos el estilo "headerStyle") ---
+        $xml .= '      <Row ss:StyleID="headerStyle">' . "\n";
+        foreach ($headers as $header) {
+            $xml .= '        <Cell><Data ss:Type="String">' . htmlspecialchars($header) . '</Data></Cell>' . "\n";
+        }
+        $xml .= '      </Row>' . "\n";
+
+        // --- FILAS 2+: Registros ---
+        foreach ($pedidos as $pedido) {
+            foreach ($pedido->detalles as $detalle) {
+                $fechaElaboracion = $pedido->created_at ? Carbon::parse($pedido->created_at)->format('d/m/Y') : '';
+
+                // Mapeamos las 27 columnas requeridas respetando los tipos de datos (String o Number)
+                $rowCells = [
+                    ['value' => $pedido->numero_referencia, 'type' => 'String'], // A
+                    ['value' => $pedido->cliente_id, 'type' => 'Number'],        // B
+                    ['value' => $fechaElaboracion, 'type' => 'String'],          // C
+                    ['value' => '', 'type' => 'String'],                         // D (VACÍO)
+                    ['value' => $detalle->libro->clave_articulo ?? '', 'type' => 'String'], // E
+                    ['value' => $detalle->cantidad, 'type' => 'Number'],         // F
+                    ['value' => $detalle->precio_unitario, 'type' => 'Number'],   // G
+                ];
+
+                // Rellenamos las 20 columnas vacías restantes de la H a la AA
+                for ($i = 0; $i < 20; $i++) {
+                    $rowCells[] = ['value' => '', 'type' => 'String'];
+                }
+
+                // Escribimos la fila en el XML
+                $xml .= '      <Row>' . "\n";
+                foreach ($rowCells as $cell) {
+                    $xml .= '        <Cell><Data ss:Type="' . $cell['type'] . '">' . htmlspecialchars($cell['value']) . '</Data></Cell>' . "\n";
+                }
+                $xml .= '      </Row>' . "\n";
+            }
+        }
+
+        $xml .= '    </Table>' . "\n";
+        $xml .= '  </Worksheet>' . "\n";
+        $xml .= '</Workbook>' . "\n";
+
+        // 5. Guardar el archivo de manera temporal en el Storage
+        $fileName = 'pedidos_pendientes_' . time() . '.xls';
+        Storage::disk('public')->put('downloads/' . $fileName, $xml);
+
+        // 6. Retornar la URL de descarga para Vue
+        return response()->json([
+            'success' => true,
+            'download_url' => asset('storage/downloads/' . $fileName),
+            'file_name' => $fileName
+        ], 200);
     }
 }
