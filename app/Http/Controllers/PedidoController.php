@@ -119,6 +119,11 @@ class PedidoController extends Controller
         try {
             // $user = $request->user();
             // $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
+            if(auth()->user()->role == 'admin'){
+                $pedidos = Pedido::with(['cliente', 'detalles.libro', 'user']) 
+                    ->orderBy('created_at', 'desc')
+                    ->paginate(15);
+            }
             if(auth()->user()->role == 'representante'){
                 $user = auth()->user();
 
@@ -135,7 +140,8 @@ class PedidoController extends Controller
                             ->with(['cliente', 'detalles.libro', 'user']) 
                             ->orderBy('created_at', 'desc')
                             ->paginate(15);
-            } else {
+            }
+            if(auth()->user()->role == 'promotor') {
                 $pedidos = Pedido::where('user_id', auth()->user()->id)
                             ->with(['cliente', 'detalles.libro']) 
                             ->orderBy('created_at', 'desc')

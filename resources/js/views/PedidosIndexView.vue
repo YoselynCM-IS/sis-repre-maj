@@ -66,7 +66,7 @@
                     </div>
                     <div></div>
                     <div class="form-group flex items-end gap-2 md:col-span-4 lg:col-span-1">
-                        <button @click="descargarPedidos"
+                        <button v-if="currentUserRole === 'admin'" @click="descargarPedidos"
                             :disabled="!canDownload"
                             type="button"
                             class="btn-primary flex-1 h-[42px] flex items-center justify-center gap-2">
@@ -377,6 +377,8 @@ const currentPage = ref(1);
 const lastPage = ref(1);
 const totalPedidos = ref(0);
 
+const currentUserRole = ref('');
+
 // FILTROS
 const filters = reactive({
     search: '',
@@ -399,7 +401,6 @@ const fetchPedidos = async (page = 1) => {
         const response = await axios.get('/pedidos', {
             params: { page: page }
         }); 
-        console.log(response.data.data);
         // Estructura estándar de Laravel paginate(): response.data.data contiene los registros
         const paginatedData = response.data;
         
@@ -408,7 +409,6 @@ const fetchPedidos = async (page = 1) => {
             currentPage.value = paginatedData.current_page;
             lastPage.value = paginatedData.last_page;
             totalPedidos.value = paginatedData.total;
-            console.log(lastPage.value);
         } else {
             // Respaldamos en caso de que el controlador devuelva la lista directa sin paginar
             let list = Array.isArray(paginatedData) ? paginatedData : [];
@@ -518,6 +518,17 @@ const getPriorityBadgeClass = (priority) => {
     return 'bg-slate-100 text-slate-500 border border-slate-200';
 };
 
-onMounted(fetchPedidos);
+onMounted(async () => {
+    await fetchPedidos();
+    
+    try {
+        const response = await axios.get('/user');
+        if (response.data && response.data.role) {
+            currentUserRole.value = response.data.role;
+        }
+    } catch (err) {
+        console.warn("No se pudo recuperar el rol del usuario desde el servidor directamente.");
+    }
+});
 </script>
 
