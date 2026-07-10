@@ -49,7 +49,8 @@ class VisitaController extends Controller
 
                 // El representante ve las visitas de todo su equipo
                 $query->whereIn('user_id', $userIdsPermitidos);
-            } else {
+            }
+            if ($user->role === 'promotor') {
                 // SI ES CUALQUIER OTRO ROL (COMO PROMOTOR/DELEGADO), SOLO VE SUS PROPIAS VISITAS
                 $query->where('user_id', $user->id);
             }

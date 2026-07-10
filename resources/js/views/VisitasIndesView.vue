@@ -114,7 +114,7 @@
                 
                 <td class="table-cell table-cell-bold text-gray-700 block md:table-cell" data-label="FECHA">
                     {{ formatDate(visita.fecha) }}
-                    <br><label v-if="visita.user.role == 'representante'" style="color:gray; font-size:9px">{{ visita.user.full_name }}</label>
+                    <br><label v-if="currentUserRole !== 'promotor'" style="color:gray; font-size:9px">{{ visita.user.full_name }}</label>
                 </td>
                 
                 <td class="table-cell block md:table-cell" data-label="PLANTEL">
@@ -199,6 +199,8 @@ import { ChevronLeft, ChevronRight } from 'lucide-vue-next'
 const router = useRouter();
 const visitas = ref([]);
 const loading = ref(true);
+
+const currentUserRole = ref('');
 
 const filters = reactive({
     query: '',
@@ -299,7 +301,18 @@ const viewDetails = (visita) => {
     router.push({ name: 'VisitaDetalle', params: { id: visita.id } });
 };
 
-onMounted(fetchVisitas);
+onMounted(async () => {
+    await fetchVisitas();
+    
+    try {
+        const response = await axios.get('/user');
+        if (response.data && response.data.role) {
+            currentUserRole.value = response.data.role;
+        }
+    } catch (err) {
+        console.warn("No se pudo recuperar el rol del usuario desde el servidor directamente.");
+    }
+});
 </script>
 
 <style scoped>
