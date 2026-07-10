@@ -117,6 +117,38 @@
             </tr>
         </tbody>
     </table>
+    <div v-if="lastPage > 1" class="pagination-container flex items-center justify-between mt-6">
+        <div class="hidden sm:flex sm:flex-row sm:items-center sm:justify-between w-full gap-4">
+            <div class="flex items-center">
+                <nav class="flex flex-row items-center gap-1.5" aria-label="Pagination">
+                    <button @click="changePage(currentPage - 1)" :disabled="currentPage === 1" class="btn-page-nav flex items-center justify-center">
+                        <ChevronLeft />
+                    </button>
+                    
+                    <button v-for="page in lastPage" :key="page"
+                        v-show="page === 1 || page === lastPage || Math.abs(page - currentPage) <= 1"
+                        @click="changePage(page)"
+                        class="btn-page-number"
+                        :class="page === currentPage ? 'btn-page-number-active shadow-md' : 'btn-page-number-inactive'"
+                    >
+                        {{ page }}
+                    </button>
+
+                    <button @click="changePage(currentPage + 1)" :disabled="currentPage === lastPage" class="btn-page-nav flex items-center justify-center">
+                        <ChevronRight />
+                    </button>
+                </nav>
+            </div>
+        </div>
+        <div class="flex flex-1 justify-between sm:hidden">
+            <div class="flex items-center">
+                <p class="text-[10px] uppercase font-black text-slate-400 tracking-widest m-0 whitespace-nowrap">
+                    Página <span class="text-red-700 font-black text-xs px-2 py-0.5 bg-red-50 rounded-lg mx-1"><b>{{ currentPage }}</b></span> 
+                    de <span class="text-slate-700 font-black text-xs ml-1"><b>{{ lastPage }}</b></span>
+                </p>
+            </div>
+        </div>
+    </div>
 </div>
             
         </div>
@@ -127,11 +159,16 @@
 import { ref, onMounted, computed, reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from '../axios';
+import { ChevronLeft, ChevronRight } from 'lucide-vue-next'
 
 const router = useRouter();
 const gastos = ref([]);
 const loading = ref(false);
 const error = ref(null);
+
+const currentPage = ref(1);
+const lastPage = ref(1);
+const totalPedidos = ref(0);
 
 const filters = reactive({
     search: '',
@@ -190,18 +227,43 @@ const filteredGastos = computed(() => {
     return result;
 });
 
-const fetchGastos = async () => {
+const fetchGastos = async (page = 1) => {
     loading.value = true;
     error.value = null;
+    currentPage.value = page; // Guardamos la página que se está consultando
+    
     try {
-        const response = await axios.get('/gastos'); 
-        const data = response.data.data || response.data;
-        gastos.value = Array.isArray(data) ? data : []; 
+        // Enviamos la página actual en los parámetros de la petición Axios
+        const response = await axios.get('/gastos', {
+            params: { page: page }
+        }); 
+        
+        // Laravel paginate entrega la estructura completa en response.data
+        const paginatedData = response.data;
+        
+        if (paginatedData && typeof paginatedData === 'object' && 'data' in paginatedData) {
+            gastos.value = Array.isArray(paginatedData.data) ? paginatedData.data : [];
+            
+            // Seteamos el estado de la paginación usando la respuesta del backend
+            currentPage.value = paginatedData.current_page;
+            lastPage.value = paginatedData.last_page;
+        } else {
+            // Respaldo en caso de que el controlador devuelva la lista directa sin paginar
+            const data = response.data.data || response.data;
+            gastos.value = Array.isArray(data) ? data : []; 
+            lastPage.value = 1;
+        }
     } catch (err) {
         error.value = 'No se pudo sincronizar el historial de gastos.';
         console.error(err);
     } finally {
         loading.value = false;
+    }
+};
+
+const changePage = (page) => {
+    if (page >= 1 && page <= lastPage.value) {
+        fetchGastos(page);
     }
 };
 
@@ -426,5 +488,83 @@ table {
 
 .sl7{
     font-weight: bold;
+}
+
+/* ── AJUSTE DE CLASES CSS PARA ALINEACIÓN HORIZONTAL ESTRICTA ── */
+.pagination-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #fdfdfd;
+    border: 1px solid #e2e8f0;
+    padding: 14px 20px;
+    border-radius: 12px;
+}
+
+.btn-page-nav {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    border: 2px solid #f1f5f9;
+    font-weight: 800;
+    color: #94a3b8;
+    background: #fafbfc;
+    transition: all 0.2s;
+}
+
+.btn-page-nav:hover:not(:disabled) {
+    border-color: #cbd5e1;
+    color: #64748b;
+    background: white;
+}
+
+.btn-page-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 800;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-page-number-active {
+    background: linear-gradient(135deg, #e4989c 0%, #d46a8a 100%);
+    border: 2px solid #f1f5f9;
+    color: white;
+    font-weight: 900;
+}
+
+.btn-page-number-inactive {
+    border: 2px solid #f1f5f9;
+    color: #334155;
+    background: #fafbfc;
+}
+
+.btn-page-number-inactive:hover {
+    border-color: #e4989c;
+    background: white;
+}
+
+/* Botón móvil adaptado a tu estilo de "Limpiar filtro" */
+.btn-page-mobile {
+    padding: 10px 15px;
+    background: white;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    color: #64748b;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+.btn-page-mobile:hover:not(:disabled) {
+    color: #b91c1c;
+    border-color: #b91c1c;
 }
 </style>
