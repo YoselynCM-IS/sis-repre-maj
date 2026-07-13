@@ -146,7 +146,7 @@
                                     {{ pedido.status }}
                                 </span>
                                 <button 
-                                    v-if="user && user.role === 'representante'" 
+                                    v-if="user && user.role === 'admin'" 
                                     type="button"
                                     @click="openStatusModal"
                                     class="btn-secondary flex items-center justify-center gap-2 w-full mt-2 !border-slate-300 hover:bg-slate-50 transition-colors py-2.5"
@@ -346,7 +346,7 @@
                         <div class="flex items-center justify-between p-5 rounded-2xl border-2 transition-all bg-slate-50/30 border-slate-100 shadow-sm">
                             <div class="flex items-center gap-3 min-w-0 w-full justify-between">
                                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest label-large mb-5">Guía de Envío</p>
-                                <div v-if="user && user.role === 'representante'">
+                                <div v-if="user && user.role === 'admin'">
                                     <div>
                                         <input 
                                             type="file" 
@@ -368,7 +368,7 @@
                                                 :disabled="uploadLoading"
                                                 class="btn-primary px-4 py-2 text-xs font-black uppercase tracking-widest cursor-pointer inline-flex items-center justify-center border-none">
                                             <i v-if="uploadLoading" class="fas fa-spinner fa-spin mr-1"></i>
-                                            {{ uploadLoading ? '...' : 'Subir' }}
+                                            {{ uploadLoading ? 'Subiendo...' : 'Subir' }}
                                         </button>
                                     </div>
                                     <div class="flex items-center gap-3 min-w-0">
@@ -382,50 +382,48 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div v-if="pedido.guias && pedido.guias.length > 0" class="table-container mt-4 p-0">
+                                    <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
+                                        <table class="min-width-full divide-y divide-gray-200 responsive-table">
+                                            <thead class="bg-gray-100 hidden md:table-header-group">
+                                                <tr>
+                                                    <th class="table-header">Documento</th>
+                                                    <th class="table-header text-center w-32">Formato</th>
+                                                    <th class="table-header text-center w-32">Peso</th>
+                                                </tr>
+                                            </thead>
+
+                                            <tbody class="bg-white divide-y divide-gray-100 block md:table-row-group">
+                                                <tr v-for="guia in pedido.guias" :key="guia.id" 
+                                                    class="hover:bg-gray-50 transition-colors block md:table-row relative p-5 md:p-0 border-b md:border-none">
+                                                    
+                                                    <td class="table-cell block md:table-cell" data-label="DOCUMENTO">
+                                                        <a :href="getViewableUrl(guia.public_url)" 
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            class="btn-note !bg-white hover:!border-red-600 hover:!text-red-600 flex items-center gap-2 w-full justify-center md:justify-start">
+                                                                VER GUÍA
+                                                        </a>
+                                                    </td>
+
+                                                    <td class="table-cell text-left md:text-center block md:table-cell" data-label="FORMATO">
+                                                        <span :class="guia.extension === 'pdf' ? 'bg-red-50 text-red-700 border-red-100' : 'bg-blue-50 text-blue-700 border-blue-100'" 
+                                                            class="status-badge border">
+                                                            {{ (guia.extension || 'N/A').toUpperCase() }}
+                                                        </span>
+                                                    </td>
+
+                                                    <td class="table-cell text-left md:text-center font-bold text-slate-500 text-xs block md:table-cell" data-label="PESO">
+                                                        {{ guia.size }} KB
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-
-                    <div v-if="pedido.guias && pedido.guias.length > 0" class="table-container mt-4 p-0">
-                        <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
-                            <table class="min-width-full divide-y divide-gray-200 responsive-table">
-                                <thead class="bg-gray-100 hidden md:table-header-group">
-                                    <tr>
-                                        <th class="table-header">Documento</th>
-                                        <th class="table-header text-center w-32">Formato</th>
-                                        <th class="table-header text-center w-32">Peso</th>
-                                    </tr>
-                                </thead>
-
-                                <tbody class="bg-white divide-y divide-gray-100 block md:table-row-group">
-                                    <tr v-for="guia in pedido.guias" :key="guia.id" 
-                                        class="hover:bg-gray-50 transition-colors block md:table-row relative p-5 md:p-0 border-b md:border-none">
-                                        
-                                        <td class="table-cell block md:table-cell" data-label="DOCUMENTO">
-                                            <a :href="getViewableUrl(guia.public_url)" 
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                class="btn-note !bg-white hover:!border-red-600 hover:!text-red-600 flex items-center gap-2 w-full justify-center md:justify-start">
-                                                    VER GUÍA
-                                            </a>
-                                        </td>
-
-                                        <td class="table-cell text-left md:text-center block md:table-cell" data-label="FORMATO">
-                                            <span :class="guia.extension === 'pdf' ? 'bg-red-50 text-red-700 border-red-100' : 'bg-blue-50 text-blue-700 border-blue-100'" 
-                                                  class="status-badge border">
-                                                {{ (guia.extension || 'N/A').toUpperCase() }}
-                                            </span>
-                                        </td>
-
-                                        <td class="table-cell text-left md:text-center font-bold text-slate-500 text-xs block md:table-cell" data-label="PESO">
-                                            {{ guia.size }} KB
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
                 </div>
             
 

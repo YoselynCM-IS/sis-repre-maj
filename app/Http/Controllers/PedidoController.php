@@ -647,7 +647,7 @@ class PedidoController extends Controller
     public function storeGuia(Request $request)
     {
         // ── REGLA DE SEGURIDAD ABSOLUTA: Solo representantes asignan guías ──
-        if ($request->user()->role !== 'representante') {
+        if ($request->user()->role !== 'admin') {
             return response()->json(['message' => 'No autorizado. Solo el representante puede subir guías de pedidos.'], 403);
         }
 
@@ -659,15 +659,15 @@ class PedidoController extends Controller
         
         $pedido = Pedido::findOrFail($request->pedido_id);
         $user = $request->user();
-        $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
+        // $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
 
-        // Validamos que el pedido le pertenezca a él o a sus promotores
-        $promotoresIds = Delegate::where('representative_id', $ownerId)->pluck('user_id')->toArray();
-        $userIdsPermitidos = array_merge([$ownerId], $promotoresIds);
+        // // Validamos que el pedido le pertenezca a él o a sus promotores
+        // $promotoresIds = Delegate::where('representative_id', $ownerId)->pluck('user_id')->toArray();
+        // $userIdsPermitidos = array_merge([$ownerId], $promotoresIds);
 
-        if (!in_array($pedido->user_id, $userIdsPermitidos)) {
-            return response()->json(['message' => 'No autorizado. Este pedido no pertenece a tu equipo.'], 403);
-        }
+        // if (!in_array($pedido->user_id, $userIdsPermitidos)) {
+        //     return response()->json(['message' => 'No autorizado. Este pedido no pertenece a tu equipo.'], 403);
+        // }
 
         try {
             $accessToken = $this->getDropboxToken();
