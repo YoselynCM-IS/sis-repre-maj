@@ -7,25 +7,25 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     
-    public function up(): void
-    {
-        Schema::create('gastos', function (Blueprint $table) {
-            $table->id();
+    // public function up(): void
+    // {
+    //     Schema::create('gastos', function (Blueprint $table) {
+    //         $table->id();
             
-            $table->foreignId('user_id')->constrained('users'); 
+    //         $table->foreignId('user_id')->constrained('users'); 
             
-            $table->date('fecha')->comment('Fecha en que se realizó el gasto.');
-            $table->string('concepto', 255);
-            $table->decimal('monto', 10, 2); 
-            $table->boolean('facturado')->default(false); 
+    //         $table->date('fecha')->comment('Fecha en que se realizó el gasto.');
+    //         $table->string('concepto', 255);
+    //         $table->decimal('monto', 10, 2); 
+    //         $table->boolean('facturado')->default(false); 
             
-            $table->timestamps();
-        });
-    }
+    //         $table->timestamps();
+    //     });
+    // }
 
     
-    public function down(): void
-    {
-        Schema::dropIfExists('gastos');
-    }
+    // public function down(): void
+    // {
+    //     Schema::dropIfExists('gastos');
+    // }
 };

@@ -6,17 +6,17 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up(): void
-    {
-        Schema::table('gastos', function (Blueprint $table) {
-            $table->enum('status', ['BORRADOR', 'FINALIZADO'])->default('BORRADOR')->after('detalles');
-        });
-    }
+    // public function up(): void
+    // {
+    //     Schema::table('gastos', function (Blueprint $table) {
+    //         $table->enum('status', ['BORRADOR', 'FINALIZADO'])->default('BORRADOR')->after('detalles');
+    //     });
+    // }
 
-    public function down(): void
-    {
-        Schema::table('gastos', function (Blueprint $table) {
-            $table->dropColumn('status');
-        });
-    }
+    // public function down(): void
+    // {
+    //     Schema::table('gastos', function (Blueprint $table) {
+    //         $table->dropColumn('status');
+    //     });
+    // }
 };

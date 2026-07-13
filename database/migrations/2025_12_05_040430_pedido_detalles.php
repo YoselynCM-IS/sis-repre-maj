@@ -6,27 +6,27 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up(): void
-    {
-        Schema::create('pedido_detalles', function (Blueprint $table) {
-            $table->id();
+    // public function up(): void
+    // {
+    //     Schema::create('pedido_detalles', function (Blueprint $table) {
+    //         $table->id();
 
-            $table->foreignId('pedido_id')->constrained('pedidos')->onDelete('cascade');
+    //         $table->foreignId('pedido_id')->constrained('pedidos')->onDelete('cascade');
 
-            $table->unsignedBigInteger('libro_id');
+    //         $table->unsignedBigInteger('libro_id');
 
-            $table->string('tipo_licencia', 100);
-            $table->integer('cantidad');
+    //         $table->string('tipo_licencia', 100);
+    //         $table->integer('cantidad');
 
-            $table->decimal('precio_unitario', 10, 2);
-            $table->decimal('costo_total', 10, 2);
+    //         $table->decimal('precio_unitario', 10, 2);
+    //         $table->decimal('costo_total', 10, 2);
 
-            $table->timestamps();
-        });
-    }
+    //         $table->timestamps();
+    //     });
+    // }
 
-    public function down(): void
-    {
-        Schema::dropIfExists('pedido_detalles');
-    }
+    // public function down(): void
+    // {
+    //     Schema::dropIfExists('pedido_detalles');
+    // }
 };

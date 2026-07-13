@@ -10,86 +10,86 @@ return new class extends Migration
     /**
      * Sincroniza la tabla visitas con la nueva estructura de prospectos y materiales JSON.
      */
-    public function up(): void
-    {
-        // 1. LIMPIEZA PREVENTIVA (Solución al error 4025)
-        // MariaDB no permite convertir a JSON si el contenido actual no es un JSON válido.
-        // Forzamos un arreglo vacío [] en registros existentes o nulos.
-        DB::table('visitas')
-            ->whereNull('libros_interes')
-            ->orWhere('libros_interes', '')
-            ->update(['libros_interes' => '[]']);
+    // public function up(): void
+    // {
+    //     // 1. LIMPIEZA PREVENTIVA (Solución al error 4025)
+    //     // MariaDB no permite convertir a JSON si el contenido actual no es un JSON válido.
+    //     // Forzamos un arreglo vacío [] en registros existentes o nulos.
+    //     DB::table('visitas')
+    //         ->whereNull('libros_interes')
+    //         ->orWhere('libros_interes', '')
+    //         ->update(['libros_interes' => '[]']);
 
-        Schema::table('visitas', function (Blueprint $table) {
-            // 2. CONVERSIÓN DE TIPO
-            $table->json('libros_interes')->nullable()->change();
+    //     Schema::table('visitas', function (Blueprint $table) {
+    //         // 2. CONVERSIÓN DE TIPO
+    //         $table->json('libros_interes')->nullable()->change();
 
-            // 3. ADICIÓN DE COLUMNAS FALTANTES (Snapshot del Plantel)
-            // Verificamos una por una para evitar errores si alguna ya existiera.
+    //         // 3. ADICIÓN DE COLUMNAS FALTANTES (Snapshot del Plantel)
+    //         // Verificamos una por una para evitar errores si alguna ya existiera.
             
-            if (!Schema::hasColumn('visitas', 'nombre_plantel')) {
-                $table->string('nombre_plantel')->nullable()->after('cliente_id');
-            }
+    //         if (!Schema::hasColumn('visitas', 'nombre_plantel')) {
+    //             $table->string('nombre_plantel')->nullable()->after('cliente_id');
+    //         }
 
-            // NUEVA: Columna nivel_educativo_plantel (Causante del error 1054)
-            if (!Schema::hasColumn('visitas', 'nivel_educativo_plantel')) {
-                $table->string('nivel_educativo_plantel')->nullable()->after('nombre_plantel');
-            }
+    //         // NUEVA: Columna nivel_educativo_plantel (Causante del error 1054)
+    //         if (!Schema::hasColumn('visitas', 'nivel_educativo_plantel')) {
+    //             $table->string('nivel_educativo_plantel')->nullable()->after('nombre_plantel');
+    //         }
 
-            if (!Schema::hasColumn('visitas', 'rfc_plantel')) {
-                $table->string('rfc_plantel', 20)->nullable()->after('nivel_educativo_plantel');
-            }
+    //         if (!Schema::hasColumn('visitas', 'rfc_plantel')) {
+    //             $table->string('rfc_plantel', 20)->nullable()->after('nivel_educativo_plantel');
+    //         }
 
-            if (!Schema::hasColumn('visitas', 'direccion_plantel')) {
-                $table->text('direccion_plantel')->nullable()->after('rfc_plantel');
-            }
+    //         if (!Schema::hasColumn('visitas', 'direccion_plantel')) {
+    //             $table->text('direccion_plantel')->nullable()->after('rfc_plantel');
+    //         }
 
-            if (!Schema::hasColumn('visitas', 'estado_id')) {
-                // Relación geográfica para el prospecto
-                $table->foreignId('estado_id')->nullable()->after('direccion_plantel')->constrained('estados');
-            }
+    //         if (!Schema::hasColumn('visitas', 'estado_id')) {
+    //             // Relación geográfica para el prospecto
+    //             $table->foreignId('estado_id')->nullable()->after('direccion_plantel')->constrained('estados');
+    //         }
 
-            if (!Schema::hasColumn('visitas', 'latitud')) {
-                $table->decimal('latitud', 10, 8)->nullable()->after('estado_id');
-                $table->decimal('longitud', 11, 8)->nullable()->after('latitud');
-            }
+    //         if (!Schema::hasColumn('visitas', 'latitud')) {
+    //             $table->decimal('latitud', 10, 8)->nullable()->after('estado_id');
+    //             $table->decimal('longitud', 11, 8)->nullable()->after('latitud');
+    //         }
 
-            if (!Schema::hasColumn('visitas', 'telefono_plantel')) {
-                $table->string('telefono_plantel')->nullable()->after('longitud');
-                $table->string('email_plantel')->nullable()->after('telefono_plantel');
-                $table->string('director_plantel')->nullable()->after('email_plantel');
-            }
+    //         if (!Schema::hasColumn('visitas', 'telefono_plantel')) {
+    //             $table->string('telefono_plantel')->nullable()->after('longitud');
+    //             $table->string('email_plantel')->nullable()->after('telefono_plantel');
+    //             $table->string('director_plantel')->nullable()->after('email_plantel');
+    //         }
 
-            // Nota: proxima_accion, es_primera_visita y resultado_visita 
-            // ya existen en tu BD actual, por lo que no las modificamos.
-        });
-    }
+    //         // Nota: proxima_accion, es_primera_visita y resultado_visita 
+    //         // ya existen en tu BD actual, por lo que no las modificamos.
+    //     });
+    // }
 
-    /**
-     * Revierte los cambios.
-     */
-    public function down(): void
-    {
-        Schema::table('visitas', function (Blueprint $table) {
-            $table->text('libros_interes')->nullable()->change();
+    // /**
+    //  * Revierte los cambios.
+    //  */
+    // public function down(): void
+    // {
+    //     Schema::table('visitas', function (Blueprint $table) {
+    //         $table->text('libros_interes')->nullable()->change();
             
-            // Eliminamos las columnas en caso de rollback
-            if (Schema::hasColumn('visitas', 'estado_id')) {
-                $table->dropForeign(['estado_id']);
-            }
+    //         // Eliminamos las columnas en caso de rollback
+    //         if (Schema::hasColumn('visitas', 'estado_id')) {
+    //             $table->dropForeign(['estado_id']);
+    //         }
             
-            $table->dropColumn([
-                'nombre_plantel',
-                'nivel_educativo_plantel',
-                'rfc_plantel',
-                'direccion_plantel',
-                'estado_id',
-                'latitud',
-                'longitud',
-                'telefono_plantel',
-                'email_plantel',
-                'director_plantel'
-            ]);
-        });
-    }
+    //         $table->dropColumn([
+    //             'nombre_plantel',
+    //             'nivel_educativo_plantel',
+    //             'rfc_plantel',
+    //             'direccion_plantel',
+    //             'estado_id',
+    //             'latitud',
+    //             'longitud',
+    //             'telefono_plantel',
+    //             'email_plantel',
+    //             'director_plantel'
+    //         ]);
+    //     });
+    // }
 };

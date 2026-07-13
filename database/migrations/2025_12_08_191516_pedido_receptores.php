@@ -6,25 +6,25 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up(): void
-    {
-        Schema::create('pedido_receptores', function (Blueprint $table) {
-            $table->id();
+    // public function up(): void
+    // {
+    //     Schema::create('pedido_receptores', function (Blueprint $table) {
+    //         $table->id();
 
-            $table->unsignedBigInteger('cliente_id')->nullable();
+    //         $table->unsignedBigInteger('cliente_id')->nullable();
 
-            $table->string('nombre');
-            $table->string('rfc', 50)->nullable();
-            $table->string('telefono');
-            $table->string('correo');
-            $table->text('direccion')->nullable(); 
+    //         $table->string('nombre');
+    //         $table->string('rfc', 50)->nullable();
+    //         $table->string('telefono');
+    //         $table->string('correo');
+    //         $table->text('direccion')->nullable(); 
 
-            $table->timestamps();
-        });
-    }
+    //         $table->timestamps();
+    //     });
+    // }
 
-    public function down(): void
-    {
-        Schema::dropIfExists('pedido_receptores');
-    }
+    // public function down(): void
+    // {
+    //     Schema::dropIfExists('pedido_receptores');
+    // }
 };
