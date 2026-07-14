@@ -8,8 +8,7 @@
                     <h1 v-if="visita" class="text-2xl md:text-4xl font-black text-black tracking-tight leading-tight break-words">
                         {{ visita.nombre_plantel || visita.cliente?.name || 'Sin nombre' }}
                     </h1>
-                    <h1 v-else-if="loading" class="text-2xl font-black text-slate-300 animate-pulse uppercase">Sincronizando información...</h1>
-                    <p class="text-xs md:text-sm text-red-600 font-medium mt-1 uppercase tracking-tighter italic">Expediente técnico de prospectación y acuerdos académicos.</p>
+                    <h1 v-else-if="loading" class="text-2xl font-black text-slate-300 animate-pulse uppercase">Obteniendo información...</h1>
                 </div>
                 <button @click="router.push('/visitas')" class="btn-secondary shadow-sm shrink-0 w-full sm:w-auto">
                     <i class="fas fa-arrow-left mr-2"></i> VOLVER AL LISTADO
@@ -19,13 +18,13 @@
             <!-- Loader de Sistema -->
             <div v-if="loading" class="loading-state py-20 text-center">
                 <i class="fas fa-circle-notch fa-spin text-5xl text-red-600 mb-4"></i>
-                <p class="text-slate-400 font-black uppercase tracking-widest text-xs">Consultando base de datos maestra...</p>
+                <p class="text-slate-400 font-black uppercase tracking-widest text-xs">Obteniendo información...</p>
             </div>
 
             <!-- Error de Conexión -->
             <div v-else-if="error" class="error-message-container p-10 text-center bg-red-50 border-2 border-red-100 rounded-[2.5rem] shadow-sm animate-fade-in">
                 <i class="fas fa-exclamation-triangle fa-3xl text-red-600 mb-6"></i>
-                <h2 class="text-xl font-black text-black uppercase tracking-tighter">Error de Sincronización</h2>
+                <h2 class="text-xl font-black text-black uppercase tracking-tighter">Error al obtener información</h2>
                 <p class="text-red-600/70 text-sm mt-2 font-medium">{{ error }}</p>
                 <button @click="fetchVisitaDetail" class="btn-primary-action mt-6 px-10">Reintentar</button>
             </div>
@@ -78,8 +77,11 @@
 
                                 <div v-if="visita.cliente?.foto_plantel" class="data-row">
                                     <label class="label-large">Fotografía del Plantel</label>
-                                    <div class="caja-miniatura-preview max-w-xs overflow-hidden rounded-2xl border-4 border-white shadow-md mt-2">
-                                        <img :src="`/storage/${visita.cliente.foto_plantel}`" alt="Foto Plantel" class="w-full object-cover rounded-xl max-h-48" />
+                                    <div class="caja-miniatura-preview mt-2" style="width: 650px !important; height: 420px !important; overflow: hidden !important; display: block !important; border: 2px solid #e2e8f0; border-radius: 12px;">
+                                        <img :src="`/storage/${visita.cliente.foto_plantel}`" 
+                                            alt="Foto Plantel" 
+                                            class="object-cover" 
+                                            style="width: 100% !important; height: 100% !important; display: block !important;" />
                                     </div>
                                 </div>
                                 <div class="data-row">
@@ -293,10 +295,10 @@
                                 <div class="space-y-12">
                                     
                                     <!-- SECCIÓN DE MATERIALES: VISIBILIDAD CONDICIONAL -->
-                                    <div v-if="parseMateriales(h.libros_interes).interes.length || parseMateriales(h.libros_interes).entregado.length">
+                                    <div v-if="parseMateriales(h.libros_interes)?.interes?.length || parseMateriales(h.libros_interes)?.entregado?.length">
                                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                                             <div class="space-y-8 animate-fade-in">
-                                                <div v-if="parseMateriales(h.libros_interes).interes.length" class="table-container">
+                                                <div v-if="parseMateriales(h.libros_interes)?.interes?.length" class="table-container">
                                                     <h5 class="text-black font-black label-large uppercase text-[11px] tracking-[0.2em] mb-6 flex items-center gap-2">
                                                         <i class="fas fa-book-open text-red-700"></i> Libros de interés
                                                     </h5>
@@ -343,7 +345,7 @@
                                                     </div>
                                                 </div>
 
-                                                <div v-if="parseMateriales(h.libros_interes).entregado.length" class="table-container">
+                                                <div v-if="parseMateriales(h.libros_interes)?.entregado?.length" class="table-container">
                                                     <h5 class="text-black font-black label-large uppercase text-[11px] tracking-[0.2em] mb-6 flex items-center gap-2">
                                                         <i class="fas fa-box-open text-red-700"></i> Muestras de promoción entregadas
                                                     </h5>
@@ -382,7 +384,7 @@
                                     <!-- OBSERVACIONES -->
                                     <div class="space-y-4">
                                         <h5 class="text-black font-black uppercase text-[11px] label-large tracking-widest flex items-center gap-2">
-                                            <i class="fas fa-comment-dots text-red-700 label-large"></i> COMENTARIOS Y ACUERDOS DE LA SESIÓN
+                                            <i class="fas fa-comment-dots text-red-700 label-large"></i> COMENTARIOS Y ACUERDOS DE LA VISTA
                                         </h5>
                                         <div class="bg-amber-50 p-8 rounded-3xl border border-amber-100 italic text-slate-700 text-sm leading-relaxed font-medium shadow-inner">
                                             "{{ h.comentarios || 'El representante no dejó observaciones escritas en esta sesión.' }}"
