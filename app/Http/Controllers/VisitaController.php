@@ -415,7 +415,7 @@ class VisitaController extends Controller
                 // Carga de relación cobranza agregada de manera limpia
                 ->with(['cliente.cobranzas' => function($query) {
                     $query->with(['regimenFiscal', 'usoCfdi']);
-                }, 'estado', 'logs.user']) 
+                }, 'estado.pais', 'logs.user']) 
                 ->first();
 
             if (!$visita) {

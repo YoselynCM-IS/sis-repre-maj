@@ -97,8 +97,8 @@
                             <br>
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="data-row">
-                                    <label class="label-large">Estado</label>
-                                    <p class="value-text uppercase">{{ visita.estado?.estado || 'No especificado' }}</p>
+                                    <label class="label-large">País / Estado</label>
+                                    <p class="value-text uppercase">{{ visita.estado?.pais.nombre }} / {{ visita.estado?.estado || 'No especificado' }}</p>
                                 </div>
                                 <div class="data-row">
                                     <label class="label-large">Dirección Completa</label>
