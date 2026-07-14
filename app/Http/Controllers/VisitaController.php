@@ -171,7 +171,7 @@ class VisitaController extends Controller
                 elseif ($duplicado->telefono === $phone) $campo = 'TELÉFONO';
 
                 return response()->json([
-                    'message' => "ACCIÓN BLOQUEADA: El {$campo} ya existe bajo el registro de '{$duplicado->name}'."
+                    'message' => "El {$campo} ya existe bajo el registro de '{$duplicado->name}'."
                 ], 422);
             }
 

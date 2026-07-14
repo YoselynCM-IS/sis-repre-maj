@@ -5,7 +5,7 @@
             <div class="module-header flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <div>
                     <h1 class="text-xl md:text-2xl font-black text-black uppercase tracking-tighter">Registro de Primera Visita</h1>
-                    <p class="text-xs md:text-sm text-red-600 font-bold uppercase tracking-widest mt-1">Alta de prospecto: La captura de coordenadas GPS es obligatoria.</p>
+                    <!-- <p class="text-xs md:text-sm text-red-600 font-bold uppercase tracking-widest mt-1">Alta de prospecto: La captura de coordenadas GPS es obligatoria.</p> -->
                 </div>
                 <button @click="$router.push('/visitas')" class="btn-secondary shadow-sm shrink-0 w-full sm:w-auto">
                     <i class="fas fa-arrow-left"></i> Volver al Historial
@@ -71,24 +71,21 @@
                                  'border-blue-100 bg-blue-50/20': !attemptedSubmit || form.plantel.latitud
                              }">
                             <div class="flex items-center justify-between mb-4">
-                                <label class="text-[10px] font-black uppercase tracking-[0.2em]" 
-                                       :class="attemptedSubmit && !form.plantel.latitud ? 'text-red-700' : 'text-blue-800'">
-                                    <i class="fas fa-map-marker-alt mr-1"></i> Ubicación Geográfica
-                                </label>
+                                <label style="font-size: 14px;"><strong>Ubicación Geográfica</strong></label><br>
                                 <span v-if="form.plantel.latitud" class="text-[9px] bg-green-100 text-green-700 px-3 py-1 rounded-full font-black uppercase shadow-sm">✓ Coordenadas Capturadas</span>
                                 <!-- <span v-else-if="attemptedSubmit" class="text-[9px] bg-red-600 text-white px-3 py-1 rounded-full font-black uppercase animate-bounce">Requerido</span> -->
-                            </div>
-                            <br>
+                            </div><br>
                             <button type="button" @click="getLocation" class="btn-primary w-full py-4 rounded-2xl flex items-center justify-center gap-3 shadow-lg transition-all" 
                                     :class="form.plantel.latitud ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'"
                                     :disabled="gettingLocation || loading">
                                 <i class="fas" :class="gettingLocation ? 'fa-spinner fa-spin' : (form.plantel.latitud ? 'fa-check-double' : 'fa-crosshairs')"></i>
                                 <span class="font-black uppercase tracking-widest text-[11px]">
-                                    {{ form.plantel.latitud ? 'Actualizar Coordenadas GPS' : 'Capturar Ubicación Obligatoria' }}
+                                    {{ form.plantel.latitud ? 'Actualizar Coordenadas GPS' : 'Capturar Ubicación' }}
                                 </span>
                             </button>
                         </div>
 
+                        <!-- FOTOGRAFIA -->
                         <div class="seccion-foto-modulo-premium">
                             <label style="font-size: 14px;"><strong>Fotografía del Plantel</strong></label>
                             
@@ -383,7 +380,7 @@
                                 </label>
                                 
                                 <div class="form-group relative mb-4">
-                                    <label class="label-mini">Buscar Libro para Entrega Física</label>
+                                    <label class="label-mini">Buscar y Añadir Libro</label>
                                     <div class="relative">
                                         <input 
                                             v-model="deliveredInput.titulo" 
@@ -443,10 +440,10 @@
                         </div>
 
                         <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
-                            <label class="label-mini mb-4 text-red-800 label-large font-black tracking-tighter"><i class="fas fa-box-open mr-1"></i> 5. RESULTADO Y COMENTARIOS DE LA SESIÓN</label>
+                            <label class="label-mini mb-4 text-red-800 label-large font-black tracking-tighter"><i class="fas fa-box-open mr-1"></i> 5. RESULTADO Y COMENTARIOS DE LA VISTA</label>
                             
                             <div class="form-group mb-6">
-                                <label class="label-style">Resolución / Resultado</label>
+                                <label class="label-style">Resultado</label>
                                 <select v-model="form.visita.resultado_visita" class="form-input font-black uppercase tracking-widest text-slate-700" required :disabled="loading">
                                     <option value="seguimiento">CONTINUAR SEGUIMIENTO</option>
                                     <option value="compra">DECISIÓN DE COMPRA</option>
@@ -455,7 +452,7 @@
                             </div>
                             
                             <div class="form-group">
-                                <label class="label-style">COMENTARIOS Y ACUERDOS DE LA SESIÓN</label>
+                                <label class="label-style">COMENTARIOS Y ACUERDOS DE LA VISTA</label>
                                 <textarea v-model="form.visita.comentarios" class="form-input font-medium" rows="4" placeholder="Resumen detallado de la entrevista (Mínimo 20 caracteres)..." required minlength="20" :disabled="loading"></textarea>
                             </div>
                         </div>
@@ -637,7 +634,7 @@
                     <button type="button" @click="$router.push('/visitas')" class="btn-secondary px-10 py-4 rounded-2xl font-bold uppercase text-xs tracking-widest bg-white border-2 border-slate-200 text-black" :disabled="loading">Cancelar</button>
                     <button type="submit" class="btn-primary px-20 py-4 shadow-xl shadow-red-900/10 transition-all active:scale-95" :disabled="loading || anyDuplicate || isProcessingCheck || gettingLocation">
                         <i class="fas" :class="loading ? 'fa-spinner fa-spin mr-2' : 'fa-cloud-upload-alt mr-2'"></i> 
-                        {{ loading ? 'Sincronizando...' : 'Finalizar Registro y Alta' }}
+                        {{ loading ? 'Guardando...' : 'Guardar' }}
                     </button>
                 </div>
             </form>
@@ -782,17 +779,67 @@ const seriesFiltradas = computed(() => {
 const savedClientType = computed(() => form.visita.resultado_visita === 'compra' ? 'Cliente' : 'Prospecto');
 
 // Funciones para gestionar el archivo de foto
-const handleFotoUpload = (event) => {
+const handleFotoUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
-    if (file.size > 4 * 1024 * 1024) {
-        alert("La imagen excede el límite permitido de 4MB.");
+    // Si la foto pesa 4 MB o menos, se asigna directo y genera la vista previa original
+    if (file.size <= 4 * 1024 * 1024) {
+        fotoFile.value = file;
+        fotoPreview.value = URL.createObjectURL(file);
         return;
     }
 
-    fotoFile.value = file;
-    fotoPreview.value = URL.createObjectURL(file);
+    // Si supera los 4 MB, la comprimimos en el navegador
+    try {
+        const compressedFile = await compressImageOnClient(file);
+        fotoFile.value = compressedFile;
+        fotoPreview.value = URL.createObjectURL(compressedFile); // Vista previa de la imagen optimizada
+    } catch (error) {
+        console.error("Error al optimizar la imagen en el cliente:", error);
+        // Respaldo seguro si algo falla: asignamos el archivo original
+        fotoFile.value = file;
+        fotoPreview.value = URL.createObjectURL(file);
+    }
+};
+
+// FUNCIÓN AUXILIAR DE COMPRESIÓN (CANVAS) ──
+const compressImageOnClient = (file) => {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+
+                // Escalar proporcionalmente si la resolución es demasiado alta
+                const MAX_WIDTH = 2500;
+                if (width > MAX_WIDTH) {
+                    height = Math.round((height * MAX_WIDTH) / width);
+                    width = MAX_WIDTH;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // Exportar el Blob con calidad del 70% reduciendo el peso en memoria
+                canvas.toBlob((blob) => {
+                    const newFile = new File([blob], file.name, {
+                        type: file.type,
+                        lastModified: Date.now()
+                    });
+                    resolve(newFile);
+                }, file.type, 0.7);
+            };
+        };
+    });
 };
 
 const removeFoto = () => {
@@ -864,7 +911,7 @@ const fetchInitialData = async () => {
 };
 
 const getLocation = () => {
-    if (!navigator.geolocation) return alert("Navegador no soporta GPS.");
+    if (!navigator.geolocation) return alert("El navegador no soporta GPS.");
     gettingLocation.value = true;
     navigator.geolocation.getCurrentPosition(
         (p) => { 
@@ -873,7 +920,7 @@ const getLocation = () => {
             gettingLocation.value = false; 
             errorMessage.value = null; 
         },
-        () => { gettingLocation.value = false; errorMessage.value = "GPS DENEGADO."; }, 
+        () => { gettingLocation.value = false; errorMessage.value = "Ubicación no disponible."; }, 
         { enableHighAccuracy: true }
     );
 };
@@ -923,7 +970,7 @@ const handleSubmit = async () => {
 
     if (anyDuplicate.value) {
         const active = Object.values(fieldValidation).find(f => f.error);
-        errorMessage.value = active ? active.message : "DATOS DUPLICADOS EN EL SISTEMA GLOBAL.";
+        errorMessage.value = active ? active.message : "DATOS DUPLICADOS.";
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
     }
