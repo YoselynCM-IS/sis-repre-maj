@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Cliente;
 use App\Models\Libro;
 use App\Models\Estado;
+use App\Models\Pais;
 use App\Models\PedidoReceptor;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
@@ -199,5 +200,24 @@ class SearchController extends Controller
         } catch (\Exception $e) {
             return response()->json([], 500);
         }
+    }
+
+    public function getPaises()
+    {
+        try {
+            return response()->json(Pais::orderBy('nombre', 'asc')->get());
+        } catch (\Exception $e) {
+            return response()->json([], 500);
+        }
+    }
+
+    public function getEstadosByPais($pais_id)
+    {
+        // Trae los estados que pertenezcan al pais_id enviado
+        $estados = Estado::where('pais_id', $pais_id)
+            ->orderBy('estado', 'asc')
+            ->get(['id', 'estado']);
+
+        return response()->json($estados);
     }
 }

@@ -144,6 +144,17 @@
                         </div>
 
                         <div class="form-group mb-6">
+                            <label class="label-style">Pais*</label>
+                            <select v-model="form.plantel.pais_id" 
+                                @change="cargarEstados" 
+                                class="form-input font-bold" 
+                                required 
+                                :disabled="loading">
+                            <option value="">Seleccionar Pais...</option>
+                            <option v-for="p in paises" :key="p.id" :value="p.id">{{ p.nombre }}</option>
+                        </select>
+                        </div>
+                        <div class="form-group mb-6">
                             <label class="label-style">Estado*</label>
                             <select v-model="form.plantel.estado_id" class="form-input font-bold" required :disabled="loading">
                                 <option value="">Seleccionar Estado...</option>
@@ -714,6 +725,7 @@ const anyDuplicate = computed(() => {
 const searchingInterest = ref(false);
 const searchingDelivered = ref(false);
 
+const paises = ref([]);
 const estados = ref([]);
 const nivelesCatalog = ref([]); 
 const allSeries = ref([]); 
@@ -739,6 +751,7 @@ const form = reactive({
         latitud: null,
         longitud: null,
         niveles: [],
+        pais_id: '',
         estado_id: '',
         direccion: '',
         telefono: '',    
@@ -898,16 +911,38 @@ watch(() => fieldValidation.telefono.error, (val) => checkStates.phone.isDuplica
 const fetchInitialData = async () => {
     loadingInitial.value = true;
     try {
-        const [resEst, resNiv, resSer, resReg, resUsos] = await Promise.all([
-            axios.get('/estados'), axios.get('/search/niveles'), axios.get('/search/series'),
+        const [resPai, resNiv, resSer, resReg, resUsos] = await Promise.all([
+            axios.get('/paises'), axios.get('/search/niveles'), axios.get('/search/series'),
             axios.get('/regimenes-fiscales'), axios.get('/usos-cfdi')
         ]);
-        estados.value = resEst.data;
+        paises.value = resPai.data;
         nivelesCatalog.value = resNiv.data;
         allSeries.value = resSer.data;
         regimenesFiscales.value = resReg.data;
         usosCfdiCatalog.value = resUsos.data;
     } catch (e) { console.error(e); } finally { loadingInitial.value = false; }
+};
+
+const cargarEstados = async () => {
+    const paisId = form.plantel.pais_id;
+    
+    // Limpiamos el estado anteriormente seleccionado y la lista actual
+    form.plantel.estado_id = '';
+    estados.value = [];
+
+    if (!paisId) return;
+
+    try {
+        loading.value = true; // Opcional, si manejas estados de carga
+        
+        // Hacemos la petición a la ruta mandando el pais_id
+        const response = await axios.get(`/paises/${paisId}/estados`);
+        estados.value = response.data;
+    } catch (error) {
+        console.error("Error al cargar los estados del país:", error);
+    } finally {
+        loading.value = false;
+    }
 };
 
 const getLocation = () => {

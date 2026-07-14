@@ -62,6 +62,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/search/libros', [SearchController::class, 'searchLibros']);
     Route::get('/search/niveles', [SearchController::class, 'getNiveles']); 
     Route::get('/search/series', [SearchController::class, 'getSeries']);  
+    Route::get('/paises', [SearchController::class, 'getPaises']);
+    Route::get('/paises/{pais_id}/estados', [SearchController::class, 'getEstadosByPais']);
     Route::get('/estados', [SearchController::class, 'getEstados']);
     Route::get('/search/receptores/rfc', [SearchController::class, 'searchReceptorByRFC']);
     Route::get('/search/receptores', [SearchController::class, 'searchReceptores']);
