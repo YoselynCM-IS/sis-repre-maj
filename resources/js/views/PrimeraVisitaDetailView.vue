@@ -218,7 +218,7 @@
                     </div>
                     <div class="space-y-4">
                         <div class="bg-amber-50 p-8 rounded-3xl border border-amber-100 italic text-slate-700 text-sm leading-relaxed font-medium shadow-inner uppercase">
-                            "{{ visita.cliente?.beneficios_adicionales || 'Sin beneficios adicionales registrados para este cliente.' }}"
+                            {{ visita.cliente?.beneficios_adicionales || 'SIN BENEFICIOS ADICIONALES REGISTRADOS PARA ESTE CLIENTE.' }}
                         </div>
                     </div>
                 </div>
@@ -234,7 +234,7 @@
 
                     <div v-if="loadingHistory" class="py-10 text-center animate-pulse">
                         <i class="fas fa-spinner fa-spin text-red-600 text-3xl"></i>
-                        <p class="text-[10px] font-black text-slate-400 uppercase mt-4">Sincronizando cadena de seguimiento...</p>
+                        <p class="text-[10px] font-black text-slate-400 uppercase mt-4">Obteniendo información de seguimiento...</p>
                     </div>
 
                     <div v-else-if="historial.length" class="space-y-4">
@@ -387,7 +387,7 @@
                                             <i class="fas fa-comment-dots text-red-700 label-large"></i> COMENTARIOS Y ACUERDOS DE LA VISTA
                                         </h5>
                                         <div class="bg-amber-50 p-8 rounded-3xl border border-amber-100 italic text-slate-700 text-sm leading-relaxed font-medium shadow-inner">
-                                            "{{ h.comentarios || 'El representante no dejó observaciones escritas en esta sesión.' }}"
+                                            {{ h.comentarios || 'El representante no dejó observaciones escritas en esta sesión.' }}
                                         </div>
                                     </div>
                                 </div>
@@ -400,7 +400,7 @@
 
                     <div v-else class="text-center py-20 bg-white rounded-[3rem] border-2 border-dashed border-slate-100 opacity-60">
                         <i class="fas fa-history text-4xl text-slate-200 mb-4 block"></i>
-                        <p class="text-slate-400 font-bold uppercase text-[10px] tracking-widest italic">Aún no se han registrado seguimientos posteriores.</p>
+                        <p class="text-slate-400 font-bold uppercase text-[10px] tracking-widest italic">Aún no se ha registrado seguimiento.</p>
                     </div>
                 </div>
 
@@ -420,7 +420,7 @@
                             </div>
                         </div>
                         
-                        <p v-else class="text-slate-400 italic text-sm">Sin fecha programada de retorno</p>
+                        <p v-else class="text-slate-400 italic text-sm">Sin fecha programada</p>
 
                         <button v-if="visita.cliente?.tipo !== 'CLIENTE'" 
                             @click="router.push({ name: 'SeguimientoID', params: { id: visita.id } })" 
@@ -446,7 +446,7 @@
                 <th class="table-header w-64">Visita</th>
                 <th class="table-header">Motivo de la Modificación</th>
                 <th class="table-header w-56">Responsable</th>
-                <th class="table-header text-right w-48">Sincronización</th>
+                <th class="table-header text-right w-48">Fecha</th>
             </tr>
         </thead>
         <tbody class="bg-white bk divide-y divide-gray-100 block md:table-row-group">
@@ -467,7 +467,7 @@
 
                 <td class="table-cell block md:table-cell" data-label="MOTIVO DE LA MODIFICACIÓN">
                     <p class="text-[11px] font-bold text-slate-700 italic leading-relaxed uppercase">
-                        "{{ log.motivo_cambio || 'SIN JUSTIFICACIÓN TÉCNICA' }}"
+                        "{{ log.motivo_cambio || 'SIN MOTIVO' }}"
                     </p>
                 </td>
 
@@ -493,7 +493,7 @@
             </tr>
             <tr v-if="!allLogs || allLogs.length === 0" class="block md:table-row">
                 <td colspan="4" class="px-6 py-12 text-center italic text-slate-300 font-black text-[10px] uppercase tracking-widest block md:table-cell">
-                    No se han registrado movimientos en la bitácora
+                    No se han registrado movimientos.
                 </td>
             </tr>
         </tbody>

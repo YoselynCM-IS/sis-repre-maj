@@ -163,7 +163,7 @@
                         </div>
 
                         <div class="form-group mb-6">
-                            <label class="label-style">Dirección Completa</label>
+                            <label class="label-style">Dirección Completa *</label>
                             <textarea v-model="form.plantel.direccion" class="form-input font-medium" rows="2" placeholder="Calle, número, colonia, CP..." required minlength="10" :disabled="loading"></textarea>
                         </div>
 
@@ -204,13 +204,12 @@
                             </div>
 
                             <div class="form-group relative">
-                                <label class="label-style">Teléfono Oficina *</label>
+                                <label class="label-style">Teléfono Oficina</label>
                                 <input 
                                     v-model="form.plantel.tel_oficina" 
                                     type="tel" 
                                     class="form-input font-bold" 
                                     placeholder="Número de oficina" 
-                                    required
                                     minlength="10" 
                                     maxlength="10"
                                     :disabled="loading"
@@ -454,7 +453,7 @@
                             <label class="label-mini mb-4 text-red-800 label-large font-black tracking-tighter"><i class="fas fa-box-open mr-1"></i> 5. RESULTADO Y COMENTARIOS DE LA VISTA</label>
                             
                             <div class="form-group mb-6">
-                                <label class="label-style">Resultado</label>
+                                <label class="label-style">Resultado *</label>
                                 <select v-model="form.visita.resultado_visita" class="form-input font-black uppercase tracking-widest text-slate-700" required :disabled="loading">
                                     <option value="seguimiento">CONTINUAR SEGUIMIENTO</option>
                                     <option value="compra">DECISIÓN DE COMPRA</option>
@@ -463,7 +462,7 @@
                             </div>
                             
                             <div class="form-group">
-                                <label class="label-style">COMENTARIOS Y ACUERDOS DE LA VISTA</label>
+                                <label class="label-style">COMENTARIOS Y/O ACUERDOS DE LA VISTA *</label>
                                 <textarea v-model="form.visita.comentarios" class="form-input font-medium" rows="4" placeholder="Resumen detallado de la entrevista (Mínimo 20 caracteres)..." required minlength="20" :disabled="loading"></textarea>
                             </div>
                         </div>
@@ -476,7 +475,6 @@
                                     class="form-input font-medium" 
                                     rows="4" 
                                     placeholder="Escriba aquí los beneficios adicionales otorgados al cliente (Mínimo 20 caracteres)..." 
-                                    required 
                                     minlength="20" 
                                     :disabled="loading"
                                 ></textarea>
@@ -488,11 +486,11 @@
                            
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label class="text-[9px] text-orange-600 font-black uppercase mb-1 block">Fecha de la proxima visita</label>
+                                        <label class="text-[9px] text-orange-600 font-black uppercase mb-1 block">Fecha de la proxima visita *</label>
                                         <input v-model="form.visita.proxima_visita" type="date" class="form-input border-orange-200 font-bold" required :disabled="loading">
                                     </div>
                                     <div>
-                                        <label class="text-[9px] text-orange-600 font-black uppercase mb-1 block">Objetivo</label>
+                                        <label class="text-[9px] text-orange-600 font-black uppercase mb-1 block">Objetivo *</label>
                                         <select v-model="form.visita.proxima_accion" class="form-input border-orange-200 font-bold" :disabled="loading">
                                             <option value="visita">Visita de Seguimiento</option>
                                             <option value="presentacion">Presentación Académica</option>
@@ -1016,11 +1014,11 @@ const handleSubmit = async () => {
     //     return;
     // }
 
-    if (selectedInterestBooks.value.length === 0) {
-        errorMessage.value = "AGREGUE AL MENOS UN MATERIAL DE INTERÉS.";
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
-    }
+    // if (selectedInterestBooks.value.length === 0) {
+    //     errorMessage.value = "AGREGUE AL MENOS UN MATERIAL DE INTERÉS.";
+    //     window.scrollTo({ top: 0, behavior: 'smooth' });
+    //     return;
+    // }
 
     // NUEVA VALIDACIÓN: Validar los campos de precio especial o descuento obligatorios en libros de interés
     const camposIncompletos = selectedInterestBooks.value.some(libro => !libro.beneficio_tipo || libro.beneficio_valor === undefined || libro.beneficio_valor === '');
@@ -1031,11 +1029,11 @@ const handleSubmit = async () => {
     }
 
     // NUEVA VALIDACIÓN: Validar longitud mínima de Beneficios Adicionales
-    if (!form.plantel.beneficios_adicionales || form.plantel.beneficios_adicionales.trim().length < 20) {
-        errorMessage.value = "EL CAMPO DE 'BENEFICIOS ADICIONALES' ES OBLIGATORIO Y DEBE CONTENER AL MENOS 20 CARACTERES.";
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
-    }
+    // if (!form.plantel.beneficios_adicionales || form.plantel.beneficios_adicionales.trim().length < 20) {
+    //     errorMessage.value = "EL CAMPO DE 'BENEFICIOS ADICIONALES' ES OBLIGATORIO Y DEBE CONTENER AL MENOS 20 CARACTERES.";
+    //     window.scrollTo({ top: 0, behavior: 'smooth' });
+    //     return;
+    // }
 
     if (form.plantel.niveles.length === 0) { 
         errorMessage.value = "SELECCIONE NIVELES EDUCATIVOS."; 
