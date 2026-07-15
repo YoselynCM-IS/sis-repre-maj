@@ -77,7 +77,7 @@
 
                                 <div v-if="visita.cliente?.foto_plantel" class="data-row">
                                     <label class="label-large">Fotografía del Plantel</label>
-                                    <div class="caja-miniatura-preview mt-2" style="width: 650px !important; height: 420px !important; overflow: hidden !important; display: block !important; border: 2px solid #e2e8f0; border-radius: 12px;">
+                                    <div class="caja-miniatura-preview mt-2" style="width: 50% !important; height: 50% !important; overflow: hidden !important; display: block !important; border: 2px solid #e2e8f0; border-radius: 12px;">
                                         <img :src="`/storage/${visita.cliente.foto_plantel}`" 
                                             alt="Foto Plantel" 
                                             class="object-cover" 
@@ -306,7 +306,7 @@
                                                         <table class="min-width-full divide-y divide-gray-200 responsive-table">
                                                             <thead class="bg-gray-100 hidden md:table-header-group">
                                                                 <tr>
-                                                                    <th class="table-header">Libros</th>
+                                                                    <th class="table-header">Libro</th>
                                                                     <th class="table-header text-center w-28">Formato</th>
                                                                     <th class="table-header text-center w-40">Opción Comercial</th>
                                                                     <th class="table-header text-right w-32">Cantidad / Valor</th>
@@ -316,7 +316,7 @@
                                                                 <tr v-for="(item, i) in parseMateriales(h.libros_interes).interes" :key="i" 
                                                                     class="hover:bg-gray-50 transition-colors block md:table-row relative p-4 md:p-0 border-b md:border-none">
                                                                     
-                                                                    <td class="table-cell block md:table-cell" data-label="LIBROS">
+                                                                    <td class="table-cell block md:table-cell" data-label="LIBRO">
                                                                         <div class="text-sm font-bold text-gray-800 uppercase leading-tight">
                                                                             {{ item.titulo }}
                                                                         </div>
@@ -362,13 +362,13 @@
                                                                     class="hover:bg-red-50/30 transition-colors block md:table-row relative p-4 md:p-0 border-b md:border-none">
                                                                     
                                                                     <td class="table-cell block md:table-cell" data-label="LIBRO">
-                                                                        <div class="text-sm font-bold text-red-900 uppercase leading-tight">
+                                                                        <div class="text-sm font-bold text-gray-800 uppercase leading-tight">
                                                                             {{ item.titulo }}
                                                                         </div>
                                                                     </td>
                                                                     
                                                                     <td class="table-cell text-left md:text-right block md:table-cell" data-label="CANTIDAD">
-                                                                        <span class="text-sm font-black text-red-600 bg-red-100 px-3 py-1 rounded-lg border border-red-200">
+                                                                        <span class="text-sm font-black text-gray-900">
                                                                             {{ item.cantidad }}
                                                                         </span>
                                                                     </td>
