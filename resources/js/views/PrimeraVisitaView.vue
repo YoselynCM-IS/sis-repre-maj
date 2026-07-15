@@ -54,7 +54,7 @@
                                     class="form-input uppercase font-mono border-slate-200 font-black text-red-900" 
                                     :class="{'border-red-600 bg-red-50 ring-2 ring-red-100': fieldValidation.rfc.error}"
                                     placeholder="XXXXXXXXXXXXX" 
-                                    maxlength="13" 
+                                    maxlength="14" 
                                     :disabled="loading"
                                 >
                                 <i v-if="validatingFields.rfc" class="fas fa-spinner fa-spin absolute right-4 top-1/2 -translate-y-1/2 text-red-600"></i>
@@ -104,7 +104,7 @@
                                     </div>
                                     <div class="textos-guia-drop">
                                         <p class="txt-principal-upload">Capturar o adjuntar fotografía</p>
-                                        <p class="txt-secundario-upload">Formatos soportados: JPG, PNG, WEBP (Máx 4MB)</p>
+                                        <p class="txt-secundario-upload">Formatos soportados: JPG, PNG, WEBP</p>
                                     </div>
                                 </div>
 
@@ -526,7 +526,7 @@
                                                 type="text" 
                                                 v-model="form.cobranza.rfc" 
                                                 required 
-                                                maxlength="13"
+                                                maxlength="14"
                                                 class="form-input font-bold"
                                                 placeholder="EJ. XAXX010101000"
                                             />

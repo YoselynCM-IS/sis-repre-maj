@@ -134,7 +134,7 @@ class VisitaController extends Controller
 
             // ── FRAGMENTO A AGREGAR: VALIDACIÓN CONDICIONAL DE COBRANZA ──
             'cobranza.nombre'            => 'required_if:visita.resultado_visita,compra|nullable|string|max:150',
-            'cobranza.rfc'               => 'required_if:visita.resultado_visita,compra|nullable|string|max:13',
+            'cobranza.rfc'               => 'required_if:visita.resultado_visita,compra|nullable|string|max:14',
             'cobranza.correo'            => 'required_if:visita.resultado_visita,compra|nullable|email',
             'cobranza.telefono'          => 'required_if:visita.resultado_visita,compra|nullable|string|max:10',
             'cobranza.direccion'         => 'required_if:visita.resultado_visita,compra|nullable|string',
