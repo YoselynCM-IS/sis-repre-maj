@@ -318,11 +318,11 @@
                                             </ul>
                                         </div>
                                     </div>
-                                    
-                                    <div v-if="selectedInterestBooks.length" class="table-container mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                                        <div class="table-responsive border-none">
-                                            <table class="w-full divide-y divide-gray-200 responsive-table">
-                                                <thead class="bg-slate-900 hidden md:table-header-group">
+
+                                    <div v-if="selectedInterestBooks.length" class="table-responsive table-shadow-lg mt-8 border rounded-xl overflow-hidden shadow-sm bg-white animate-fade-in">
+                                        <!-- <div class="table-responsive border-none"> -->
+                                            <table class="min-width-full divide-y divide-gray-200 responsive-table">
+                                                <thead class="bg-gray-100 hidden md:table-header-group">
                                                     <tr>
                                                         <th class="table-header text-white">Libro</th>
                                                         <th class="table-header text-center w-32 text-white">Formato</th>
@@ -336,11 +336,14 @@
                                                         class="hover:bg-gray-50 transition-colors block md:table-row relative p-5 md:p-0 border-b md:border-none">
                                                         
                                                         <td class="table-cell block md:table-cell" data-label="LIBRO">
-                                                            <div class="text-xs font-black text-slate-800 uppercase leading-tight">{{ item.titulo }}</div>
-                                                            <div class="text-[9px] font-black text-slate-400 uppercase tracking-tighter mt-1">{{ item.serie_nombre }}</div>
+                                                            <div class="text-xs font-black text-slate-800 uppercase leading-tight">
+                                                                {{ item.titulo }}<br>
+                                                                <label><b style="color:gray; font-size:12px">{{ item.serie_nombre }}</b></label>
+                                                            </div>
+                                                            
                                                         </td>
 
-                                                        <td class="table-cell text-left md:text-center block md:table-cell" data-label="FORMATO">
+                                                        <td class="table-cell block md:table-cell" data-label="FORMATO">
                                                             <select v-model="item.tipo" class="select-table lbb md:max-w-[120px] md:mx-auto">
                                                                 <option v-if="item.original_type === 'digital'" value="digital">DIGITAL</option>
                                                                 <template v-else>
@@ -351,7 +354,7 @@
                                                             </select>
                                                         </td>
 
-                                                        <td class="table-cell text-left md:text-center block md:table-cell" data-label="OPCIÓN COMERCIAL">
+                                                        <td class="table-cell block md:table-cell" data-label="OPCIÓN COMERCIAL *">
                                                             <select v-model="item.beneficio_tipo" class="select-table lbb md:max-w-[170px] md:mx-auto" required>
                                                                 <option value="" disabled>Seleccione una opción...</option>
                                                                 <option value="Precio especial">Precio especial</option>
@@ -359,7 +362,7 @@
                                                             </select>
                                                         </td>
 
-                                                        <td class="table-cell text-left md:text-center block md:table-cell" data-label="VALOR">
+                                                        <td class="table-cell block md:table-cell" data-label="CANTIDAD / VALOR *">
                                                             <input 
                                                                 v-model.number="item.beneficio_valor" 
                                                                 type="number" 
@@ -371,7 +374,7 @@
                                                             />
                                                         </td>
 
-                                                        <td class="table-cell text-right block md:table-cell">
+                                                        <td class="table-cell block md:table-cell">
                                                             <button type="button" @click="selectedInterestBooks.splice(idx, 1)" class="btn-secondary flex items-center justify-end gap-1 w-full text-[10px] font-black uppercase text-red-400 hover:text-red-600">
                                                                 <i class="fas fa-trash-alt"></i> <span class="md:hidden">Quitar</span>
                                                             </button>
@@ -379,7 +382,7 @@
                                                     </tr>
                                                 </tbody>
                                             </table>
-                                        </div>
+                                        <!-- </div> -->
                                     </div>
                                 </div>
                             </div>
@@ -411,10 +414,10 @@
                                     </ul>
                                 </div>
                                 
-                                <div v-if="selectedDeliveredBooks.length" class="table-modern-wrapper mt-6 overflow-hidden rounded-2xl border border-red-100 bg-white shadow-sm">
-                                    <div class="table-responsive border-none">
-                                        <table class="w-full divide-y divide-gray-200 responsive-table">
-                                            <thead class="bg-red-900 hidden md:table-header-group">
+                                <div v-if="selectedDeliveredBooks.length" class="table-responsive table-shadow-lg mt-8 border rounded-xl overflow-hidden shadow-sm bg-white animate-fade-in">
+                                    <!-- <div class="table-responsive border-none"> -->
+                                        <table class="min-width-full divide-y divide-gray-200 responsive-table">
+                                            <thead class="bg-gray-100 hidden md:table-header-group"">
                                                 <tr>
                                                     <th class="table-header text-white">Libro</th>
                                                     <th class="table-header text-center w-40 text-white">Cantidad</th>
@@ -428,7 +431,7 @@
                                                         <div class="text-xs font-black text-slate-800 uppercase leading-tight">{{ item.titulo }}</div>
                                                     </td>
 
-                                                    <td class="table-cell text-left md:text-center block md:table-cell" data-label="CANTIDAD">
+                                                    <td class="table-cell block md:table-cell" data-label="CANTIDAD">
                                                         <div class="flex justify-start md:justify-center">
                                                             <div class="quantity-control-wrapper w-full md:w-32">
                                                                 <input v-model.number="item.cantidad" type="number" min="1" class="input-table text-center font-black lbb" />
@@ -436,7 +439,7 @@
                                                         </div>
                                                     </td>
 
-                                                    <td class="table-cell text-right block md:table-cell">
+                                                    <td class="table-cell block md:table-cell">
                                                         <button type="button" @click="selectedDeliveredBooks.splice(idx, 1)" class="btn-secondary flex items-center justify-end gap-1 w-full text-[10px] font-black uppercase text-red-400 hover:text-red-600">
                                                             <i class="fas fa-trash-alt"></i> <span class="md:hidden">Quitar</span>
                                                         </button>
@@ -444,7 +447,7 @@
                                                 </tr>
                                             </tbody>
                                         </table>
-                                    </div>
+                                    <!-- </div> -->
                                 </div>
                             </div>
                         </div>

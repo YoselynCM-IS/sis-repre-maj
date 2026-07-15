@@ -4,7 +4,6 @@
             <div class="module-header detail-header-flex">
                 <div>
                     <h1>Seguimiento de Visitas</h1>
-                    <p>Gestiona los prospectos y las interacciones con los planteles de forma directa.</p>
                 </div>
                 <div class="flex gap-3">
                     <router-link to="/primeras-visitas" class="btn-primary flex-row-centered gap-2">
@@ -71,16 +70,15 @@
                     </div>
                 </div>
 
-                <div class="flex justify-end gap-3 mt-4 pt-4 border-t border-gray-100">
+                <div class="filter-grid">
                     <button @click="fetchVisitas" class="btn-primary py-2 px-8" :disabled="loading">
                         <i class="fas fa-sync-alt mr-1" :class="{'fa-spin': loading}"></i> 
                         {{ loading ? 'Buscando...' : 'Buscar' }}
                     </button>
-                    <br><br>
                     <button @click="resetFilters" class="btn-secondary" title="Limpiar Filtros">
-                        <i class="fas fa-eraser mr-1"></i> Borrar Filtros
+                        <i class="fas fa-eraser mr-1"></i> Limpiar Filtro
                     </button>
-                    
+                    <div></div><div></div>
                 </div>
             </div>
             
@@ -88,7 +86,7 @@
             
             <div v-if="loading" class="loading-state py-10 mt-8 text-center">
                 <i class="fas fa-spinner fa-spin text-3xl mb-2 text-red-600"></i>
-                <p class="text-gray-500 font-medium">Consultando registros...</p>
+                <p class="text-gray-500 font-medium">Obteniendo registros...</p>
             </div>
 
             <div v-else-if="visitas.length === 0" class="cart-empty-message mt-8 text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed">
@@ -113,8 +111,10 @@
                 class="hover:bg-gray-50 transition-colors block md:table-row relative p-5 md:p-0 border-b md:border-none">
                 
                 <td class="table-cell table-cell-bold text-gray-700 block md:table-cell" data-label="FECHA">
-                    {{ formatDate(visita.fecha) }}
-                    <br><label v-if="currentUserRole !== 'promotor'" style="color:gray; font-size:9px">{{ visita.user.full_name }}</label>
+                    <div>
+                        {{ formatDate(visita.fecha) }}<br>
+                        <label v-if="currentUserRole !== 'promotor'" style="color:gray; font-size:9px">{{ visita.user.full_name }}</label>
+                    </div>
                 </td>
                 
                 <td class="table-cell block md:table-cell" data-label="PLANTEL">
@@ -130,7 +130,7 @@
                     </div>
                 </td>
                 
-                <td class="table-cell text-left md:text-center block md:table-cell" data-label="ESTADO">
+                <td class="table-cell block md:table-cell" data-label="ESTADO">
                     <span class="status-badge" :class="getOutcomeClass(visita.resultado_visita)">
                         <i :class="getOutcomeIcon(visita.resultado_visita)" class="mr-1"></i>
                         {{ (visita.resultado_visita || 'seguimiento').toUpperCase() }}
@@ -145,8 +145,8 @@
                     <div v-else class="text-gray-300 text-[10px] italic">No agendada</div>
                 </td>
 
-                <td class="table-cell-action text-right block md:table-cell">
-                    <button @click="viewDetails(visita)" class="text-red-link font-bold text-sm flex items-center justify-end gap-1 w-full">
+                <td class="table-cell-action block md:table-cell">
+                    <button @click="viewDetails(visita)" class="btn-primary py-2 px-8">
                         <i class="fas fa-eye"></i> Ver Detalle
                     </button>
                 </td>
