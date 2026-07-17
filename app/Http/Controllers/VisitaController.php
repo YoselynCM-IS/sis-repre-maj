@@ -136,7 +136,7 @@ class VisitaController extends Controller
             'cobranza.nombre'            => 'required_if:visita.resultado_visita,compra|nullable|string|max:150',
             'cobranza.rfc'               => 'required_if:visita.resultado_visita,compra|nullable|string|max:14',
             'cobranza.correo'            => 'required_if:visita.resultado_visita,compra|nullable|email',
-            'cobranza.telefono'          => 'required_if:visita.resultado_visita,compra|nullable|string|max:10',
+            'cobranza.telefono'          => 'required_if:visita.resultado_visita,compra|nullable|string|max:11',
             'cobranza.direccion'         => 'required_if:visita.resultado_visita,compra|nullable|string',
             'cobranza.metodo_pago'       => 'required_if:visita.resultado_visita,compra|nullable|string',
             'cobranza.tipo_pago'       => 'required_if:visita.resultado_visita,compra|nullable|string',
@@ -332,7 +332,7 @@ class VisitaController extends Controller
             'cobranza.nombre'            => 'required_if:resultado_visita,compra|nullable|string|max:150',
             'cobranza.rfc'               => 'required_if:resultado_visita,compra|nullable|string|max:13',
             'cobranza.correo'            => 'required_if:resultado_visita,compra|nullable|email',
-            'cobranza.telefono'          => 'required_if:resultado_visita,compra|nullable|string|max:10',
+            'cobranza.telefono'          => 'required_if:resultado_visita,compra|nullable|string|max:11',
             'cobranza.direccion'         => 'required_if:resultado_visita,compra|nullable|string',
             'cobranza.metodo_pago'       => 'required_if:resultado_visita,compra|nullable|string',
             'cobranza.tipo_pago'         => 'required_if:resultado_visita,compra|nullable|string',
@@ -439,7 +439,7 @@ class VisitaController extends Controller
             'cliente_id'                  => 'required|integer|exists:clientes,id',
             'cobranza.nombre'             => 'required|string|max:255',
             'cobranza.correo'             => 'required|email|max:255',
-            'cobranza.telefono'           => 'required|string|digits:10', // Fuerza exactamente 10 dígitos numéricos
+            'cobranza.telefono'           => 'required|string|min:8|max:11', // Fuerza exactamente 10 dígitos numéricos
             'cobranza.rfc'                => [
                 'required',
                 'string',
@@ -547,7 +547,7 @@ class VisitaController extends Controller
                 'cobranza.nombre'            => 'required_if:resultado_visita,compra|nullable|string|max:150',
                 'cobranza.rfc'               => 'required_if:resultado_visita,compra|nullable|string|max:13',
                 'cobranza.correo'            => 'required_if:resultado_visita,compra|nullable|email',
-                'cobranza.telefono'          => 'required_if:resultado_visita,compra|nullable|string|max:10',
+                'cobranza.telefono'          => 'required_if:resultado_visita,compra|nullable|string|max:11',
                 'cobranza.direccion'         => 'required_if:resultado_visita,compra|nullable|string',
                 'cobranza.metodo_pago'       => 'required_if:resultado_visita,compra|nullable|string',
                 'cobranza.tipo_pago'         => 'required_if:resultado_visita,compra|nullable|string',

@@ -180,8 +180,8 @@
                                             :class="{'border-red-500 bg-red-50': fieldValidation.telefono.error}"
                                             placeholder="Número principal" 
                                             required 
-                                            minlength="10" 
-                                            maxlength="10"
+                                            minlength="8" 
+                                            maxlength="11"
                                             :disabled="loading"
                                         >
                                         <i v-if="validatingFields.telefono" class="fas fa-spinner fa-spin absolute right-4 top-1/2 -translate-y-1/2 text-red-600"></i>
@@ -210,8 +210,8 @@
                                     type="tel" 
                                     class="form-input font-bold" 
                                     placeholder="Número de oficina" 
-                                    minlength="10" 
-                                    maxlength="10"
+                                    minlength="8" 
+                                    maxlength="11"
                                     :disabled="loading"
                                 >
                             </div>
@@ -553,10 +553,10 @@
                                                 type="text" 
                                                 v-model="form.cobranza.telefono" 
                                                 required 
-                                                minlength="10" 
-                                                maxlength="10" 
+                                                minlength="8" 
+                                                maxlength="11" 
                                                 class="form-input font-bold"
-                                                placeholder="MÁXIMO 10 DÍGITOS"
+                                                placeholder="MÁXIMO 11 DÍGITOS"
                                             />
                                         </div>
 
@@ -872,7 +872,7 @@ const validateUniqueness = async (field) => {
     if (field === 'name') { val = form.plantel.name?.trim() || ''; queryParam = 'nombre'; minLen = 5; }
     else if (field === 'rfc') { val = form.plantel.rfc?.trim().toUpperCase() || ''; queryParam = 'rfc'; minLen = 12; }
     else if (field === 'email') { val = form.plantel.email?.trim().toLowerCase() || ''; queryParam = 'correo'; minLen = 5; }
-    else if (field === 'telefono') { val = form.plantel.telefono?.trim() || ''; queryParam = 'telefono'; minLen = 10; }
+    else if (field === 'telefono') { val = form.plantel.telefono?.trim() || ''; queryParam = 'telefono'; minLen = 8; }
 
     if (!val || val.length < minLen) {
         if (fieldValidation[field]) {

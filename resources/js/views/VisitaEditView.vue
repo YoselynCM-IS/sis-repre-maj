@@ -150,7 +150,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div class="form-group">
                                 <label class="label-style">Teléfono Principal*</label>
-                                <input v-model="form.plantel.telefono" @blur="validateUniqueness('telefono')" type="tel" class="form-input font-bold" :class="fieldValidation.telefono.error ? 'border-red-600 bg-red-50' : ''" :disabled="!visita.es_primera_visita" minlength="10" maxlength="10" required>
+                                <input v-model="form.plantel.telefono" @blur="validateUniqueness('telefono')" type="tel" class="form-input font-bold" :class="fieldValidation.telefono.error ? 'border-red-600 bg-red-50' : ''" :disabled="!visita.es_primera_visita" minlength="8" maxlength="11" required>
                                 <p v-if="fieldValidation.telefono.error" class="text-[9px] text-red-600 font-black mt-1 uppercase animate-pulse">
                                     <i class="fas fa-times-circle"></i> {{ fieldValidation.telefono.message }}
                                 </p>
@@ -161,7 +161,7 @@
                             </div>
                             <div class="form-group">
                                 <label class="label-style">Teléfono de Oficina *</label>
-                                <input v-model="form.plantel.tel_oficina" type="text" class="form-input font-bold" :disabled="!visita.es_primera_visita" minlength="10" maxlength="10" required>
+                                <input v-model="form.plantel.tel_oficina" type="text" class="form-input font-bold" :disabled="!visita.es_primera_visita" minlength="8" maxlength="11" required>
                             </div>
                             <div class="form-group">
                                 <label class="label-style">Correo Electrónico *</label>
@@ -437,10 +437,10 @@
                                                 type="text" 
                                                 v-model="form.cobranza.telefono" 
                                                 required 
-                                                minlength="10" 
-                                                maxlength="10" 
+                                                minlength="8" 
+                                                maxlength="11" 
                                                 class="form-input font-bold"
-                                                placeholder="MÁXIMO 10 DÍGITOS"
+                                                placeholder="MÁXIMO 11 DÍGITOS"
                                             />
                                         </div>
 

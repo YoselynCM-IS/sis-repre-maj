@@ -311,10 +311,10 @@
                                                 type="text" 
                                                 v-model="form.cobranza.telefono" 
                                                 required 
-                                                minlength="10" 
-                                                maxlength="10" 
+                                                minlength="8" 
+                                                maxlength="11" 
                                                 class="form-input font-bold"
-                                                placeholder="MÁXIMO 10 DÍGITOS"
+                                                placeholder="MÁXIMO 11 DÍGITOS"
                                             />
                                         </div>
 

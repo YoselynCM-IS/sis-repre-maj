@@ -160,32 +160,32 @@
                                         </thead>
                                         <tbody class="bg-white bk divide-y divide-gray-100 block md:table-row-group">
                                             <tr v-for="(item, index) in visita.cliente.cobranzas" :key="item.id" class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                                                <td class="table-cell text-left md:text-center block md:table-cell">
+                                                <td class="table-cell text-left md:text-center block md:table-cell" data-label="N.">
                                                     <span class="status-badge bg-blue-50 text-blue-700 border border-blue-100">
                                                         {{ index + 1 }}
                                                     </span>
                                                 </td>
-                                                <td class="table-cell block md:table-cell">
+                                                <td class="table-cell block md:table-cell" data-label="Nombre o razón social">
                                                     <div class="text-sm font-bold text-gray-800 uppercase leading-tight">
                                                         {{ item.responsable || '—' }}
                                                     </div>
                                                 </td>
-                                                <td class="table-cell block md:table-cell">
+                                                <td class="table-cell block md:table-cell" data-label="RFC">
                                                     <div class="text-sm font-bold text-gray-800 uppercase leading-tight">
                                                         {{ item.rfc }}
                                                     </div>
                                                 </td>
-                                                <td class="table-cell block md:table-cell">
+                                                <td class="table-cell block md:table-cell" data-label="Correo">
                                                     <div class="text-sm font-bold text-gray-800 uppercase leading-tight">
                                                         {{ item.correo || '—' }}
                                                     </div>
                                                 </td>
-                                                <td class="table-cell block md:table-cell">
+                                                <td class="table-cell block md:table-cell" data-label="Teléfono de contacto">
                                                     <div class="text-sm font-bold text-gray-800 uppercase leading-tight">
                                                         {{ item.telefono || '—' }}
                                                     </div>
                                                 </td>
-                                                <td class="table-cell block md:table-cell">
+                                                <td class="table-cell block md:table-cell" data-label="Creado el">
                                                     <div class="text-sm font-bold text-gray-800 uppercase leading-tight">
                                                         {{ item.created_at ? new Date(item.created_at).toLocaleDateString('es-MX', { year: 'numeric', month: '2-digit', day: '2-digit' }) : '—' }}
                                                     </div>
@@ -194,7 +194,7 @@
                                                     <button 
                                                         @click="abrirDetalleCobranza(item)"
                                                         type="button"
-                                                        class="btn-secondary flex items-center gap-2 shrink-0 !border-slate-300 hover:bg-slate-50 transition-colors"
+                                                        class="btn-primary flex items-center gap-2 shrink-0 !border-slate-300 hover:bg-slate-50 transition-colors"
                                                     >
                                                         <i class="fas fa-eye mr-1"></i> Detalle
                                                     </button>
@@ -474,12 +474,12 @@
                 <td class="table-cell block md:table-cell" data-label="RESPONSABLE">
                     <div class="flex items-center gap-2">
                         <span class="text-[11px] font-black text-gray-800 uppercase tracking-tight">
-                            {{ log.user?.name || 'Representante' }}
+                            {{ log.user?.full_name || 'Representante' }}
                         </span>
                     </div>
                 </td>
 
-                <td class="table-cell block md:table-cell text-left md:text-right" data-label="SINCRONIZACIÓN">
+                <td class="table-cell block md:table-cell text-left md:text-right" data-label="Fecha">
                     <div class="flex flex-col items-start md:items-end">
                         <span class="text-[11px] font-black text-gray-800 uppercase leading-none">
                             {{ formatDateOnly(log.created_at) }}
@@ -557,10 +557,10 @@
                                                 type="text" 
                                                 v-model="form.cobranza.telefono" 
                                                 required 
-                                                minlength="10" 
-                                                maxlength="10" 
+                                                minlength="8" 
+                                                maxlength="11" 
                                                 class="form-input font-bold"
-                                                placeholder="MÁXIMO 10 DÍGITOS"
+                                                placeholder="MÁXIMO 11 DÍGITOS"
                                             />
                                         </div>
 
