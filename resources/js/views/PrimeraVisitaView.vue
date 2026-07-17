@@ -291,7 +291,7 @@
                                         <div class="form-group">
                                             <label class="label-mini">Filtrar por Serie</label>
                                             <select v-model="selectedSerieIdA" class="form-input font-bold text-xs lbb" @change="handleSerieChange('interest')">
-                                                <option value="">Cualquier serie...</option>
+                                                <option value="">Elegir serie...</option>
                                                 <option v-for="s in seriesFiltradas" :key="s.id" :value="s.id">{{ s.nombre }}</option>
                                                 <option value="otro">VER TODAS LAS SERIES</option>
                                             </select>
@@ -325,7 +325,7 @@
                                                 <thead class="bg-gray-100 hidden md:table-header-group">
                                                     <tr>
                                                         <th class="table-header text-white">Libro</th>
-                                                        <th class="table-header text-center w-32 text-white">Formato</th>
+                                                        <th class="table-header text-center w-32 text-white">Formato *</th>
                                                         <th class="table-header text-center w-48 text-white">Opción Comercial *</th>
                                                         <th class="table-header text-center w-28 text-white">Cantidad / Valor *</th>
                                                         <th class="px-6 py-3 w-20 text-white"></th>
@@ -343,7 +343,7 @@
                                                             
                                                         </td>
 
-                                                        <td class="table-cell block md:table-cell" data-label="FORMATO">
+                                                        <td class="table-cell block md:table-cell" data-label="FORMATO *">
                                                             <select v-model="item.tipo" class="select-table lbb md:max-w-[120px] md:mx-auto">
                                                                 <option v-if="item.original_type === 'digital'" value="digital">DIGITAL</option>
                                                                 <template v-else>
@@ -417,7 +417,7 @@
                                 <div v-if="selectedDeliveredBooks.length" class="table-responsive table-shadow-lg mt-8 border rounded-xl overflow-hidden shadow-sm bg-white animate-fade-in">
                                     <!-- <div class="table-responsive border-none"> -->
                                         <table class="min-width-full divide-y divide-gray-200 responsive-table">
-                                            <thead class="bg-gray-100 hidden md:table-header-group"">
+                                            <thead class="bg-gray-100 hidden md:table-header-group">
                                                 <tr>
                                                     <th class="table-header text-white">Libro</th>
                                                     <th class="table-header text-center w-40 text-white">Cantidad</th>

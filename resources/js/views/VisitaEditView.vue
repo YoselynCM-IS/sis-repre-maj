@@ -7,9 +7,6 @@
                     <h1 class="text-xl md:text-2xl font-black text-black uppercase tracking-tighter">
                         Modificar {{ visita?.es_primera_visita ? 'Primera Visita' : 'Seguimiento' }}
                     </h1>
-                    <p class="text-xs md:text-sm text-red-600 font-bold uppercase tracking-widest mt-1">
-                        {{ visita?.es_primera_visita ? 'Apertura: Todos los campos son editables.' : 'Seguimiento: Datos del plantel protegidos (Solo lectura).' }}
-                    </p>
                 </div>
                 <button @click="$router.back()" class="btn-secondary shadow-sm shrink-0 w-full sm:w-auto">
                     <i class="fas fa-arrow-left"></i> Cancelar y Volver
@@ -19,7 +16,7 @@
             <!-- Loader de hidratación -->
             <div v-if="loadingInitial" class="py-20 text-center animate-pulse">
                 <i class="fas fa-circle-notch fa-spin text-5xl text-red-600 mb-4"></i>
-                <p class="text-slate-400 font-black uppercase tracking-widest text-xs italic">Recuperando expediente del servidor...</p>
+                <p class="text-slate-400 font-black uppercase tracking-widest text-xs italic">Obteniendo información...</p>
             </div>
 
             <!-- BLOQUEO POR REGLA DE NEGOCIO (Seguimiento ya editado) -->
@@ -29,9 +26,9 @@
                 </div>
                 <h2 class="text-2xl font-black text-slate-800 uppercase tracking-tighter">Acceso Restringido</h2>
                 <p class="text-slate-500 max-w-md mx-auto mt-4 font-medium px-6 text-sm">
-                    Este seguimiento ya fue modificado una vez. Por políticas de integridad, no se permiten más ajustes manuales.
+                    Este seguimiento ya fue modificado una vez. No se permiten más ajustes manuales.
                 </p>
-                <button @click="$router.push('/visitas')" class="mt-8 btn-primary px-12 py-4 text-xs font-black uppercase tracking-widest">Regresar al Historial</button>
+                <button @click="$router.push('/visitas')" class="mt-8 btn-primary px-12 py-4 text-xs font-black uppercase tracking-widest">Regresar</button>
             </div>
 
             <form v-else @submit.prevent="handleSubmit">
@@ -56,7 +53,7 @@
                         </div>
 
                         <div class="form-group mb-6 relative">
-                            <label class="label-style">RFC del Plantel</label>
+                            <label class="label-style">RFC del Plantel (Opcional)</label>
                             <input v-model="form.plantel.rfc" @blur="validateUniqueness('rfc')" type="text" class="form-input uppercase font-mono border-red-100 font-black text-red-900" :class="fieldValidation.rfc.error ? 'border-red-600 bg-red-50' : ''" :disabled="!visita.es_primera_visita" minlength="13" maxlength="13">
                             <p v-if="fieldValidation.rfc.error" class="text-[9px] text-red-600 font-black mt-1 uppercase animate-pulse">
                                 <i class="fas fa-times-circle"></i> {{ fieldValidation.rfc.message }}
@@ -67,14 +64,12 @@
                         <div class="p-6 rounded-[2rem] border transition-all duration-300 mb-6 shadow-sm"
                              :class="visita.es_primera_visita ? 'border-blue-100 bg-blue-50/20' : 'border-slate-100 bg-slate-50/50 opacity-60'">
                             <div class="flex items-center justify-between mb-4">
-                                <label class="text-[10px] font-black uppercase tracking-[0.2em] text-blue-800">
-                                    <i class="fas fa-map-marker-alt mr-1"></i> Ubicación Geográfica
-                                </label>
-                                <span v-if="form.plantel.latitud" class="text-[9px] bg-green-100 text-green-700 px-3 py-1 rounded-full font-black uppercase">✓ Registrada</span>
-                            </div>
+                                <label style="font-size: 14px;"><strong>Ubicación Geográfica</strong></label><br>
+                                <span v-if="form.plantel.latitud" class="text-[9px] bg-green-100 text-green-700 px-3 py-1 rounded-full font-black uppercase shadow-sm">✓ Coordenadas Capturadas</span>
+                            </div><br>
                             <button v-if="visita.es_primera_visita" type="button" @click="getLocation" class="btn-primary w-full py-4 rounded-2xl flex items-center justify-center gap-3 shadow-lg bg-blue-600 hover:bg-blue-700" :disabled="gettingLocation">
                                 <i class="fas" :class="gettingLocation ? 'fa-spinner fa-spin' : 'fa-crosshairs'"></i>
-                                <span class="font-black uppercase tracking-widest text-[11px]">Actualizar Coordenadas</span>
+                                <span class="font-black uppercase tracking-widest text-[11px]">Actualizar Coordenadas GPS</span>
                             </button>
                             <div v-else class="text-center font-mono text-[11px] font-black text-slate-400 py-2">
                                 {{ form.plantel.latitud }}, {{ form.plantel.longitud }}
@@ -98,7 +93,7 @@
                                     </div>
                                     <div class="textos-guia-drop">
                                         <p class="txt-principal-upload">Capturar o adjuntar fotografía</p>
-                                        <p class="txt-secundario-upload">Formatos soportados: JPG, PNG, WEBP (Máx 4MB)</p>
+                                        <p class="txt-secundario-upload">Formatos soportados: JPG, PNG, WEBP</p>
                                     </div>
                                 </div>
 
@@ -136,6 +131,18 @@
                         </div>
 
                         <div class="form-group mb-6">
+                            <label class="label-style">Pais*</label>
+                            <select v-model="form.plantel.pais_id" 
+                                @change="cargarEstados" 
+                                class="form-input font-bold" 
+                                required 
+                                :disabled="loading">
+                            <option value="">Seleccionar Pais...</option>
+                            <option v-for="p in paises" :key="p.id" :value="p.id">{{ p.nombre }}</option>
+                        </select>
+                        </div>
+
+                        <div class="form-group mb-6">
                             <label class="label-style">Estado*</label>
                             <select v-model="form.plantel.estado_id" class="form-input font-bold" required :disabled="!visita.es_primera_visita">
                                 <option v-for="e in estados" :key="e.id" :value="e.id">{{ e.estado }}</option>
@@ -143,7 +150,7 @@
                         </div>
 
                         <div class="form-group mb-6">
-                            <label class="label-style">Dirección Completa</label>
+                            <label class="label-style">Dirección Completa *</label>
                             <textarea v-model="form.plantel.direccion" class="form-input font-medium uppercase" rows="2" :disabled="!visita.es_primera_visita"></textarea>
                         </div>
 
@@ -160,8 +167,8 @@
                                 <input v-model="form.plantel.extension" type="text" class="form-input font-bold" :disabled="!visita.es_primera_visita" maxlength="5">
                             </div>
                             <div class="form-group">
-                                <label class="label-style">Teléfono de Oficina *</label>
-                                <input v-model="form.plantel.tel_oficina" type="text" class="form-input font-bold" :disabled="!visita.es_primera_visita" minlength="8" maxlength="11" required>
+                                <label class="label-style">Teléfono de Oficina</label>
+                                <input v-model="form.plantel.tel_oficina" type="text" class="form-input font-bold" :disabled="!visita.es_primera_visita" minlength="8" maxlength="11">
                             </div>
                             <div class="form-group">
                                 <label class="label-style">Correo Electrónico *</label>
@@ -234,21 +241,22 @@
                                  :class="{'border-red-300 ring-2 ring-red-50': visita?.es_primera_visita && selectedInterestBooks.length === 0}"
                                  style="overflow: visible !important;">
                                 <label class="label-mini label-large mb-4 text-slate-600 font-black tracking-tighter uppercase">
-                                    <i class="fas fa-eye mr-1  text-blue-500"></i> 3. Libros de Interés 
-                                    <span v-if="visita?.es_primera_visita" class="text-red-600 ml-1">* REQUERIDO</span>
+                                    <i class="fas fa-eye mr-1  text-blue-500"></i> 3. Libros de Interés
                                 </label>
                                 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                                     <div class="form-group">
+                                        <label class="label-mini">Filtrar por Serie</label>
                                         <select v-model="selectedSerieIdA" class="form-input font-bold text-xs" @change="handleSerieChange('interest')">
-                                            <option value="">Serie (Opcional)...</option>
+                                            <option value="">Elegir serie...</option>
                                             <option v-for="s in allSeries" :key="s.id" :value="s.id">{{ s.nombre }}</option>
                                             <option value="otro">VER TODAS LAS SERIES</option>
                                         </select>
                                     </div>
                                     <div class="form-group relative">
+                                        <label class="label-mini">Buscar y Añadir Libro</label>
                                         <div class="relative">
-                                            <input v-model="interestInput.titulo" type="text" class="form-input pr-10 font-bold" placeholder="Buscar y añadir..." @input="searchBooks($event, 'interest')" autocomplete="off">
+                                            <input v-model="interestInput.titulo" type="text" class="form-input pr-10 font-bold" placeholder="Título o ISBN..." @input="searchBooks($event, 'interest')" autocomplete="off">
                                             <i v-if="searchingInterest" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
                                         </div>
                                         <ul v-if="interestSuggestions.length" class="autocomplete-list shadow-2xl border border-slate-100">
@@ -259,41 +267,45 @@
                                     </div>
                                 </div>
                                 
-                                <div v-if="selectedInterestBooks.length" class="table-container mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                                    <table class="w-full divide-y divide-gray-200">
-                                        <thead class="bg-slate-900 text-white">
-                                            <tr class="text-[9px] uppercase tracking-widest font-black">
-                                                <th class="px-4 py-3 text-left">Libro</th>
-                                                <th class="px-4 py-3 text-center w-32">Formato</th>
-                                                <th class="px-4 py-3 text-center w-36">Opción Comercial</th>
-                                                <th class="px-4 py-3 text-center w-28">Cantidad / Valor</th>
-                                                <th class="px-4 py-3 w-12"></th>
+                                <div v-if="selectedInterestBooks.length" class="table-responsive table-shadow-lg mt-8 border rounded-xl overflow-hidden shadow-sm bg-white animate-fade-in">
+                                    <table class="min-width-full divide-y divide-gray-200 responsive-table">
+                                        <thead class="bg-gray-100 hidden md:table-header-group">
+                                            <tr>
+                                                <th class="table-header text-white">Libro</th>
+                                                <th class="table-header text-white w-32 text-white">Formato *</th>
+                                                <th class="table-header text-white w-48 text-white">Opción Comercial *</th>
+                                                <th class="table-header text-white w-28 text-white">Cantidad / Valor *</th>
+                                                <th class="px-6 py-3 w-20 text-white"></th>
                                             </tr>
                                         </thead>
-                                        <tbody class="divide-y divide-gray-100">
-                                            <tr v-for="(item, idx) in selectedInterestBooks" :key="idx" class="hover:bg-gray-50 transition-colors">
-                                                <td class="table-cell">
-                                                    <div class="text-[11px] font-black uppercase">{{ item.titulo }}</div>
-                                                    <div class="text-[9px] font-black text-slate-400 uppercase tracking-tighter mt-0.5">{{ item.serie_nombre }}</div>
+                                        <tbody class="bg-white divide-y divide-gray-100 block md:table-row-group">
+                                            <tr v-for="(item, idx) in selectedInterestBooks" :key="idx" class="hover:bg-gray-50 transition-colors block md:table-row relative p-5 md:p-0 border-b md:border-none">
+                                                <td class="table-cell block md:table-cell" data-label="LIBRO">
+                                                    <div class="text-xs font-black text-slate-800 uppercase leading-tight">
+                                                        {{ item.titulo }}<br>
+                                                        <label><b style="color:gray; font-size:12px">{{ item.serie_nombre }}</b></label>
+                                                    </div>
                                                 </td>
-                                                <td class="table-cell text-center">
+                                                <td class="table-cell block md:table-cell" data-label="FORMATO *">
                                                     <select v-model="item.tipo" class="select-table" :disabled="item.original_type === 'digital'">
                                                         <option value="fisico">FÍSICO</option>
                                                         <option value="digital">POR REVISAR</option>
                                                         <option value="paquete">PAQUETE</option>
                                                     </select>
                                                 </td>
-                                                <td class="table-cell text-center">
+                                                <td class="table-cell block md:table-cell" data-label="OPCIÓN COMERCIAL *">
                                                     <select v-model="item.beneficio_tipo" class="select-table" required>
                                                         <option value="Precio especial">Precio especial</option>
                                                         <option value="Descuento por libro">Descuento por libro</option>
                                                     </select>
                                                 </td>
-                                                <td class="table-cell text-center">
+                                                <td class="table-cell block md:table-cell" data-label="CANTIDAD / VALOR *">
                                                     <input v-model.number="item.beneficio_valor" type="number" min="0" class="input-table text-center" required />
                                                 </td>
-                                                <td class="table-cell text-center">
-                                                    <button type="button" @click="selectedInterestBooks.splice(idx, 1)" class="text-red-300 btn-secondary hover:text-red-600 transition-colors"><i class="fas fa-trash-alt"></i>Quitar</button>
+                                                <td class="table-cell block md:table-cell">
+                                                    <button type="button" @click="selectedInterestBooks.splice(idx, 1)" class="btn-secondary flex items-center justify-end gap-1 w-full text-[10px] font-black uppercase text-red-400 hover:text-red-600">
+                                                         <i class="fas fa-trash-alt"></i> <span class="md:hidden">Quitar</span>
+                                                    </button>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -306,8 +318,9 @@
                                 <label class="label-mini label-large mb-4 text-red-800 font-black tracking-tighter uppercase"><i class="fas fa-box-open mr-1"></i> 4. MUESTRAS DE PROMOCIÓN ENTREGADAS </label>
                                 
                                 <div class="form-group relative mb-4">
+                                    <label class="label-mini">Buscar y Añadir Libro</label>
                                     <div class="relative">
-                                        <input v-model="deliveredInput.titulo" type="text" class="form-input pr-10 font-bold border-red-100" placeholder="Buscar material promoción..." @input="searchBooks($event, 'delivered')" autocomplete="off">
+                                        <input v-model="deliveredInput.titulo" type="text" class="form-input pr-10 font-bold border-red-100" placeholder="Escribe título o ISBN..." @input="searchBooks($event, 'delivered')" autocomplete="off">
                                         <i v-if="searchingDelivered" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-red-400"></i>
                                     </div>
                                     <ul v-if="deliveredSuggestions.length" class="autocomplete-list shadow-2xl border border-slate-100">
@@ -317,25 +330,27 @@
                                     </ul>
                                 </div>
                                 
-                                <div v-if="selectedDeliveredBooks.length" class="table-modern-wrapper mt-6 overflow-hidden rounded-2xl border border-red-100 bg-white">
-                                    <table class="w-full divide-y divide-red-50">
-                                        <thead class="bg-red-900 text-white text-[9px] uppercase tracking-widest font-black">
+                                <div v-if="selectedDeliveredBooks.length" class="table-responsive table-shadow-lg mt-8 border rounded-xl overflow-hidden shadow-sm bg-white animate-fade-in">
+                                    <table class="min-width-full divide-y divide-gray-200 responsive-table">
+                                        <thead class="bg-gray-100 hidden md:table-header-group">
                                             <tr>
-                                                <th class="px-4 py-3 text-left">Libro</th>
-                                                <th class="px-4 py-3 text-center w-32">Cantidad</th>
-                                                <th class="px-4 py-3 w-16"></th>
+                                                <th class="table-header text-white">Libro</th>
+                                                <th class="table-header text-center w-40 text-white">Cantidad</th>
+                                                <th class="px-6 py-3 w-20 text-white"></th>
                                             </tr>
                                         </thead>
-                                        <tbody class="divide-y divide-red-50">
-                                            <tr v-for="(item, idx) in selectedDeliveredBooks" :key="idx" class="hover:bg-red-50/20 transition-colors">
-                                                <td class="table-cell">
+                                        <tbody class="bg-white divide-y divide-red-50 block md:table-row-group">
+                                            <tr v-for="(item, idx) in selectedDeliveredBooks" :key="idx" class="hover:bg-red-50/20 transition-colors block md:table-row relative p-5 md:p-0 border-b md:border-none">
+                                                <td class="table-cell block md:table-cell" data-label="LIBRO">
                                                     <div class="text-[11px] font-black uppercase">{{ item.titulo }}</div>
                                                 </td>
-                                                <td class="table-cell text-center">
+                                                <td class="table-cell block md:table-cell" data-label="CANTIDAD">
                                                     <input v-model.number="item.cantidad" type="number" min="1" class="input-table text-center" />
                                                 </td>
-                                                <td class="table-cell text-right">
-                                                    <button type="button"  @click="selectedDeliveredBooks.splice(idx, 1)" class="text-red-300 btn-secondary hover:text-red-600 transition-colors"><i class="fas fa-trash-alt"></i>Quitar</button>
+                                                <td class="table-cell block md:table-cell">
+                                                    <button type="button"  @click="selectedDeliveredBooks.splice(idx, 1)" class="btn-secondary flex items-center justify-end gap-1 w-full text-[10px] font-black uppercase text-red-400 hover:text-red-600">
+                                                        <i class="fas fa-trash-alt"></i> <span class="md:hidden">Quitar</span>
+                                                    </button>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -346,16 +361,17 @@
 
                      <!-- RESULTADO Y MOTIVO -->
                         <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
+                            <label class="label-mini mb-4 text-red-800 label-large font-black tracking-tighter"><i class="fas fa-box-open mr-1"></i> 5. RESULTADO Y COMENTARIOS DE LA VISTA</label>
                             <div class="form-group mb-6">
-                                <label class="label-large">5. RESULTADO Y COMENTARIOS DE LA SESIÓN</label>
+                                <label class="label-style">Resultado *</label>
                                 <select v-model="form.visita.resultado_visita" class="form-input font-black uppercase tracking-widest text-slate-700 lbb" required>
                                     <option value="seguimiento">CONTINUAR SEGUIMIENTO</option>
                                     <option value="compra">DECISIÓN DE COMPRA</option>
-                                    <option value="rechazo">RECHAZADO / CERRADO</option>
+                                    <option value="rechazo">NO INTERESADO </option>
                                 </select>
                             </div>
                             <div class="form-group mb-6">
-                                <label class="label-style">COMENTARIOS Y ACUERDOS DE LA SESIÓN*</label>
+                                <label class="label-style">COMENTARIOS Y/O ACUERDOS DE LA VISTA *</label>
                                 <textarea v-model="form.visita.comentarios" class="form-input font-medium uppercase text-xs lbb" rows="4" required minlength="20"></textarea>
                             </div>
                         </div>
@@ -364,7 +380,7 @@
                                 <i class="fas fa-gift text-red-700"></i> 6. BENEFICIOS PARA EL CLIENTE
                             </div>
                             <div class="form-group mb-6">
-                                <textarea v-model="form.plantel.beneficios_adicionales" class="form-input font-medium uppercase text-xs lbb" rows="4" required minlength="20" placeholder="ESPECIFIQUE LOS BENEFICIOS ACORDADOS CON EL PLANTEL..."></textarea>
+                                <textarea v-model="form.plantel.beneficios_adicionales" class="form-input font-medium uppercase text-xs lbb" rows="4" minlength="20" placeholder="Escriba aquí los beneficios adicionales otorgados al cliente (Mínimo 20 caracteres)..."></textarea>
                             </div>
                         </div>
                         <div v-if="form.visita.resultado_visita === 'seguimiento'" class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
@@ -373,11 +389,11 @@
                                <label class="label-large">7. PROXIMO COMPROMISO</label>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lbb">
                                     <div>
-                                        <label class="text-[8px] font-black text-orange-600 uppercase mb-1 block">Fecha estimada</label>
+                                        <label class="text-[8px] font-black text-orange-600 uppercase mb-1 block">Fecha de la proxima visita *</label>
                                         <input v-model="form.visita.proxima_visita" type="date" class="form-input border-orange-200 font-bold lbb" required :disabled="loading">
                                     </div>
                                     <div>
-                                        <label class="text-[8px] font-black text-orange-600 uppercase mb-1 block">Objetivo</label>
+                                        <label class="text-[8px] font-black text-orange-600 uppercase mb-1 block">Objetivo *</label>
                                         <select v-model="form.visita.proxima_accion" class="form-input border-orange-200 font-bold lbb" :disabled="loading">
                                             <option value="visita">Visita de Seguimiento</option>
                                             <option value="presentacion">Presentación Académica</option>
@@ -413,7 +429,7 @@
                                                 type="text" 
                                                 v-model="form.cobranza.rfc" 
                                                 required 
-                                                maxlength="13"
+                                                maxlength="14"
                                                 class="form-input font-bold"
                                                 placeholder="EJ. XAXX010101000"
                                             />
@@ -537,7 +553,7 @@
                     <button type="button" @click="$router.back()" class="btn-secondary px-10 py-4 uppercase tracking-widest text-xs" :disabled="loading">Cerrar sin Cambios</button>
                     <button type="submit" class="btn-primary px-20 py-4 shadow-xl transition-all active:scale-95" :disabled="loading || !form.motivo_cambio || form.motivo_cambio.length < 10 || isFormBlockedByDuplicates">
                         <i class="fas" :class="loading ? 'fa-spinner fa-spin mr-2' : 'fa-save mr-2'"></i> 
-                        {{ loading ? 'Sincronizando...' : 'Guardar y Auditar' }}
+                        {{ loading ? 'Actualizando...' : 'Actualizar' }}
                     </button>
                 </div>
             </form>
@@ -549,8 +565,8 @@
                 <div v-if="showSuccess" class="modal-overlay-wrapper" @click.self="showSuccess = false">
                     <div class="modal-content-success animate-scale-in">
                         <div class="success-icon-wrapper shadow-lg shadow-green-100"><i class="fas fa-check"></i></div>
-                        <h2 class="text-2xl font-black text-slate-800 mb-2 uppercase tracking-tighter">¡Expediente Actualizado!</h2>
-                        <p class="text-sm text-slate-500 mb-8 font-medium px-4">Los cambios han sido guardados y registrados en la bitácora de auditoría.</p>
+                        <h2 class="text-2xl font-black text-slate-800 mb-2 uppercase tracking-tighter">¡Visita Actualizada!</h2>
+                        <p class="text-sm text-slate-500 mb-8 font-medium px-4">Los cambios han sido guardados correctamente.</p>
                         <button @click="$router.push('/visitas')" class="btn-primary w-full py-4 !bg-slate-900 border-none text-white font-black tracking-widest text-xs uppercase">Continuar</button>
                     </div>
                 </div>
@@ -615,6 +631,7 @@ const showDuplicateModal = ref(false);
 const errorMessage = ref(null);
 
 const visita = ref(null);
+const paises = ref([]);
 const estados = ref([]);
 const nivelesCatalog = ref([]);
 const allSeries = ref([]);
@@ -671,6 +688,7 @@ const form = reactive({
         rfc: '', 
         niveles: [], 
         direccion: '', 
+        pais_id: '',
         estado_id: '', 
         telefono: '', 
         tel_oficina: '',
@@ -714,7 +732,8 @@ const isLocked = computed(() => {
 const fetchInitialData = async () => {
     loadingInitial.value = true;
     try {
-        const [resEst, resNiv, resSer, resVis, resReg, resUsos] = await Promise.all([
+        const [resPai, resEst, resNiv, resSer, resVis, resReg, resUsos] = await Promise.all([
+            axios.get('/paises'),
             axios.get('/estados'),
             axios.get('/search/niveles'),
             axios.get('/search/series'),
@@ -722,7 +741,7 @@ const fetchInitialData = async () => {
             axios.get('/regimenes-fiscales'), 
             axios.get('/usos-cfdi')
         ]);
-
+        paises.value = resPai.data;
         estados.value = resEst.data;
         nivelesCatalog.value = resNiv.data;
         allSeries.value = resSer.data;
@@ -734,6 +753,7 @@ const fetchInitialData = async () => {
         form.plantel.name = (visita.value.nombre_plantel || visita.value.cliente?.name || '').toUpperCase();
         form.plantel.rfc = (visita.value.rfc_plantel || visita.value.cliente?.rfc || '').toUpperCase();
         form.plantel.direccion = (visita.value.direccion_plantel || visita.value.cliente?.direccion || '').toUpperCase();
+        form.plantel.pais_id = visita.value.estado.pais_id || '';
         form.plantel.estado_id = visita.value.estado_id || visita.value.cliente?.estado_id || '';
         form.plantel.telefono = visita.value.telefono_plantel || visita.value.cliente?.telefono || '';
         form.plantel.tel_oficina = visita.value.cliente?.tel_oficina || '';
@@ -880,6 +900,28 @@ const addMaterial = (book, type) => {
     }
 };
 
+const cargarEstados = async () => {
+    const paisId = form.plantel.pais_id;
+    
+    // Limpiamos el estado anteriormente seleccionado y la lista actual
+    form.plantel.estado_id = '';
+    estados.value = [];
+
+    if (!paisId) return;
+
+    try {
+        loading.value = true; // Opcional, si manejas estados de carga
+        
+        // Hacemos la petición a la ruta mandando el pais_id
+        const response = await axios.get(`/paises/${paisId}/estados`);
+        estados.value = response.data;
+    } catch (error) {
+        console.error("Error al cargar los estados del país:", error);
+    } finally {
+        loading.value = false;
+    }
+};
+
 const getLocation = () => {
     if (!navigator.geolocation) return;
     gettingLocation.value = true;
@@ -920,10 +962,10 @@ const handleSubmit = async () => {
     errorMessage.value = null;
     if (isFormBlockedByDuplicates.value) return;
 
-    if (visita.value.es_primera_visita && selectedInterestBooks.value.length === 0) {
-        errorMessage.value = "PARA REGISTRAR UNA APERTURA SE REQUIERE AL MENOS UN MATERIAL DE INTERÉS.";
-        return;
-    }
+    // if (visita.value.es_primera_visita && selectedInterestBooks.value.length === 0) {
+    //     errorMessage.value = "PARA REGISTRAR UNA APERTURA SE REQUIERE AL MENOS UN MATERIAL DE INTERÉS.";
+    //     return;
+    // }
 
     // Validar los campos de precio especial o descuento obligatorios en libros de interés antes de enviar
     const camposIncompletos = selectedInterestBooks.value.some(libro => !libro.beneficio_tipo || libro.beneficio_valor === undefined || libro.beneficio_valor === '');
@@ -932,11 +974,11 @@ const handleSubmit = async () => {
         return;
     }
 
-    // Validar longitud mínima de Beneficios Adicionales
-    if (!form.plantel.beneficios_adicionales || form.plantel.beneficios_adicionales.trim().length < 20) {
-        errorMessage.value = "EL CAMPO DE 'BENEFICIOS ADICIONALES' ES OBLIGATORIO Y DEBE CONTENER AL MENOS 20 CARACTERES.";
-        return;
-    }
+    // // Validar longitud mínima de Beneficios Adicionales
+    // if (!form.plantel.beneficios_adicionales || form.plantel.beneficios_adicionales.trim().length < 20) {
+    //     errorMessage.value = "EL CAMPO DE 'BENEFICIOS ADICIONALES' ES OBLIGATORIO Y DEBE CONTENER AL MENOS 20 CARACTERES.";
+    //     return;
+    // }
 
     loading.value = true;
     try {
@@ -1222,4 +1264,8 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
 .btn-borrar-foto-premium:hover {
   background-color: #dc2626;
 }
+
+.table-header { padding: 14px 16px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; text-align: left; }
+.table-cell { padding: 12px 16px; vertical-align: middle; }
+
 </style>

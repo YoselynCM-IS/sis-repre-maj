@@ -524,7 +524,7 @@ class VisitaController extends Controller
 
             // REGLA: Solo una modificación permitida para mantener integridad académica
             if ($visita->modificaciones_realizadas >= 1) {
-                return response()->json(['message' => 'Esta intervención ya cuenta con un ajuste previo y está bloqueada.'], 403);
+                return response()->json(['message' => 'Esta visita ya cuenta con un ajuste previo.'], 403);
             }
 
             $validated = $request->validate([
@@ -534,10 +534,10 @@ class VisitaController extends Controller
                 'resultado_visita'     => 'required|in:seguimiento,compra,rechazo',
                 'motivo_cambio'        => 'required|string|min:10',
                 'plantel'              => 'required|array',
-                'plantel.tel_oficina'  => 'required|string',
+                'plantel.tel_oficina'  => 'nullable|string',
                 // 'plantel.extension'    => 'required|string',
-                'plantel.beneficios_adicionales' => 'required|string|min:20',
-                'libros_interes'       => 'required|array',
+                'plantel.beneficios_adicionales' => 'nullable|string',
+                'libros_interes'       => 'nullable|array',
                 // NUEVAS REGLAS AGREGADAS PARA EL CONTENEDOR INTERNO DE LIBROS DE INTERÉS EN EDIT
                 'libros_interes.interes.*.beneficio_tipo'  => 'required|in:Precio especial,Descuento por libro',
                 'libros_interes.interes.*.beneficio_valor' => 'required|numeric|min:0',
@@ -545,7 +545,7 @@ class VisitaController extends Controller
                 // ── FRAGMENTO A AGREGAR: VALIDACIÓN CONDICIONAL DE COBRANZA EN UPDATE ──
                 'cobranza.id'                => 'nullable',
                 'cobranza.nombre'            => 'required_if:resultado_visita,compra|nullable|string|max:150',
-                'cobranza.rfc'               => 'required_if:resultado_visita,compra|nullable|string|max:13',
+                'cobranza.rfc'               => 'required_if:resultado_visita,compra|nullable|string|max:14',
                 'cobranza.correo'            => 'required_if:resultado_visita,compra|nullable|email',
                 'cobranza.telefono'          => 'required_if:resultado_visita,compra|nullable|string|max:11',
                 'cobranza.direccion'         => 'required_if:resultado_visita,compra|nullable|string',
