@@ -866,7 +866,7 @@ const searchBooks = (event, type) => {
     if (val.length < 3) return type === 'interest' ? interestSuggestions.value = [] : deliveredSuggestions.value = [];
     if (type === 'interest') searchingInterest.value = true; else searchingDelivered.value = true;
     if (bookTimer) clearTimeout(bookTimer);
-    const serieId = type === 'interest' ? (selectedSerieIdA.value === 'otro' ? null : selectedSerieIdA.value) : null; 
+    const serieId = type === 'interest' ? (selectedSerieIdA.value === 'otro' ? 'otro' : selectedSerieIdA.value) : 'otro'; 
     bookTimer = setTimeout(async () => {
         try {
             const res = await axios.get('search/libros', { params: { query: val, serie_id: serieId } });

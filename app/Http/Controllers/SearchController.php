@@ -76,7 +76,7 @@ class SearchController extends Controller
                 $builder->where('serie_id', $serieId);
             }
 
-            return response()->json($builder->limit(15)->get());
+            return response()->json($builder->get());
 
         } catch (\Exception $e) {
             Log::error("Error en SearchController@searchLibros: " . $e->getMessage());

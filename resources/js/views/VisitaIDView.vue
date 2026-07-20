@@ -588,7 +588,7 @@ const searchBooks = (event, type) => {
     type === 'interest' ? searchingInterest.value = true : searchingDelivered.value = true;
     if (bookTimer) clearTimeout(bookTimer);
     
-    const serieId = type === 'interest' ? (selectedSerieIdA.value === 'otro' ? null : selectedSerieIdA.value) : null; 
+    const serieId = type === 'interest' ? (selectedSerieIdA.value === 'otro' ? 'otro' : selectedSerieIdA.value) : 'otro'; 
 
     bookTimer = setTimeout(async () => {
         try {
